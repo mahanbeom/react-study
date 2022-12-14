@@ -4,8 +4,8 @@ import './index.scss';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
-const SignIn = lazy(() => import('./tsx/sign-in'));
-const SignUp = lazy(() => import('./tsx/sign-up'));
+const SignIn = lazy(() => import('./component/sign-in/sign-in'));
+const SignUp = lazy(() => import('./component/sign-up/sign-up'));
 
 
 const root = ReactDOM.createRoot(
