@@ -1,15 +1,26 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.scss';
 import reportWebVitals from './reportWebVitals';
-import SignIn from './tsx/sign-in';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+
+const SignIn = lazy(() => import('./tsx/sign-in'));
+const SignUp = lazy(() => import('./tsx/sign-up'));
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <SignIn />
+    <Router>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          <Route path='/' element={<SignIn />} />
+          <Route path='/sign-up' element={<SignUp />} />
+        </Routes>
+      </Suspense>
+    </Router>
   </React.StrictMode>
 );
 
