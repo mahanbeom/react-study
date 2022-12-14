@@ -81,4 +81,6 @@ function PostDetail() {
 	);
 }
 
+// 무료 강의가 여기까지여서 프로젝트 종료.............
+
 export default App;
