@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 const SignIn = lazy(() => import('./component/sign-in/sign-in'));
 const SignUp = lazy(() => import('./component/sign-up/sign-up'));
+const TodoList = lazy(() => import('./component/todo-list/todo-list'));
 
 
 const root = ReactDOM.createRoot(
@@ -18,6 +19,7 @@ root.render(
         <Routes>
           <Route path='/' element={<SignIn />} />
           <Route path='/sign-up' element={<SignUp />} />
+          <Route path='/todo' element={<TodoList />} />
         </Routes>
       </Suspense>
     </Router>
