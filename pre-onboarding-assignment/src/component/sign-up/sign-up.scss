@@ -38,6 +38,12 @@
             border-radius: 5px;
             background-color: darkorange;
             color: white;
+
+            &:disabled {
+                background-color: lightgray;
+                color: rgba(255, 255, 255);
+                border-color: gray;
+            }
         }
 
         .link {

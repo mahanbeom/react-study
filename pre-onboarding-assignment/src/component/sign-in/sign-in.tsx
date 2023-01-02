@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../css/sign-in.scss';
+import './sign-in.scss';
 
 function SignIn() {
     return (
