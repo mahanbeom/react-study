@@ -12,13 +12,21 @@ function TodoList() {
         }
     }
 
+    function onLogoutHandler() {
+        localStorage.removeItem('login-token');
+        return navigate("/");
+    }
+
     useEffect(() => {
         tokenVerificaion();
     }, []);
 
     return (
         <div className="page">
-            <h1>Todo List</h1>
+            <div className="header">
+                <span>TODOLIST</span>
+                <button onClick={onLogoutHandler}>Logout</button>
+            </div>
         </div>
     );
 }
