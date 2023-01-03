@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../../environment';
 import './sign-in.scss';
@@ -8,6 +8,12 @@ function SignIn() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
+
+    function authenticationCheck() {
+        if (localStorage.getItem('login-token')) {
+            navigate('/todo');
+        }
+    }
 
     function onSubmitHandler(e: any) {
         e.preventDefault();
@@ -35,6 +41,10 @@ function SignIn() {
                 console.log('There has been a problem with your fetch operation: ', error.message);
             });
     }
+
+    useEffect(() => {
+        authenticationCheck();
+    }, []);
 
     return (
         <div className="page">
