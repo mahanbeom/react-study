@@ -1,12 +1,10 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.scss';
 import reportWebVitals from './reportWebVitals';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import App from './App';
 
-const SignIn = lazy(() => import('./component/sign-in/sign-in'));
-const SignUp = lazy(() => import('./component/sign-up/sign-up'));
-const TodoList = lazy(() => import('./component/todo-list/todo-list'));
+
 
 
 const root = ReactDOM.createRoot(
@@ -14,15 +12,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <Router>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          <Route path='/' element={<SignIn />} />
-          <Route path='/sign-up' element={<SignUp />} />
-          <Route path='/todo' element={<TodoList />} />
-        </Routes>
-      </Suspense>
-    </Router>
+    <App />
   </React.StrictMode>
 );
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { BACKEND_URL } from '../../environment';
 import './sign-up.scss';
 
 function SignUp() {
@@ -46,7 +47,7 @@ function SignUp() {
     function onSubmitHandler(e: any) {
         e.preventDefault();
 
-        fetch("https://pre-onboarding-selection-task.shop/auth/signup", {
+        fetch(`${BACKEND_URL}/auth/signup`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
