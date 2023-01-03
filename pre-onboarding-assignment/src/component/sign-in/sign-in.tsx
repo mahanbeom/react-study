@@ -47,7 +47,7 @@ function SignIn() {
     }, []);
 
     return (
-        <div className="page">
+        <div className="login-page">
             <form className="login-container" onSubmit={onSubmitHandler}>
                 <h1>Login</h1>
                 <label>Email</label>

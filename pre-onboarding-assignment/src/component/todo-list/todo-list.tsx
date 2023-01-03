@@ -22,10 +22,22 @@ function TodoList() {
     }, []);
 
     return (
-        <div className="page">
+        <div className="todo-page">
             <div className="header">
                 <span>TODOLIST</span>
                 <button onClick={onLogoutHandler}>Logout</button>
+            </div>
+            <div className='content-container'>
+                <h2>Todo List</h2>
+                <ul>
+                    <li>
+                        <span>sample data</span>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button>Edit</button>
+                            <button>Delete</button>
+                        </div>
+                    </li>
+                </ul>
             </div>
         </div>
     );

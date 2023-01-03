@@ -67,7 +67,7 @@ function SignUp() {
     }
 
     return (
-        <div className="page">
+        <div className="signup-page">
             <form className="signup-container" onSubmit={onSubmitHandler}>
                 <h1>Sign Up</h1>
                 <label>Email</label>
