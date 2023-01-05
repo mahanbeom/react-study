@@ -5,7 +5,7 @@ import './App.scss';
 
 const SignIn = lazy(() => import('./component/sign-in/sign-in'));
 const SignUp = lazy(() => import('./component/sign-up/sign-up'));
-const TodoList = lazy(() => import('./component/todo-list/todo-list'));
+const TodoMain = lazy(() => import('./component/todo-list'));
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
         <Routes>
           <Route path='/' element={<SignIn />} />
           <Route path='/sign-up' element={<SignUp />} />
-          <Route path='/todo' element={<TodoList />} />
+          <Route path='/todo' element={<TodoMain />} />
         </Routes>
       </Suspense>
     </Router>
