@@ -56,7 +56,7 @@ function TodoMain() {
                 <TodoCreate listReload={listReload} />
                 {
                     todoList.map(
-                        (todo: any) => <TodoList key={todo.id} content={todo.todo} />
+                        (todo: any, index) => <TodoList key={index} id={todo.id} content={todo.todo} completed={todo.isCompleted} listReload={listReload} />
                     )
                 }
             </div>

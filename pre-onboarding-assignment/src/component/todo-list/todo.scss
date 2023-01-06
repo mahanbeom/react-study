@@ -38,7 +38,7 @@
     .content-container {
         display: flex;
         flex-direction: column;
-        padding: 20px 25vw;
+        padding: 5vh 25vw;
 
         .search-container {
             display: flex;
@@ -82,5 +82,20 @@
                 }
             }
         }
+    }
+}
+
+.todo-box {
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 0;
+    background: transparent;
+    outline: none;
+    border: none;
+    border-bottom: 1px solid olive;
+
+    &:disabled {
+        border: none;
     }
 }

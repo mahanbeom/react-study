@@ -23,7 +23,6 @@ function TodoCreate(props: any) {
         })
             .then(res => res.json())
             .then(res => {
-                console.log(res);
                 setSentence("");
                 props.listReload();
             })
@@ -38,7 +37,8 @@ function TodoCreate(props: any) {
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            gap: '20px'
+            gap: '20px',
+            marginBottom: '50px'
         }} onSubmit={onSubmitHandler}>
             <div style={{
                 width: '100%',
