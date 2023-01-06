@@ -10,7 +10,7 @@ function TodoList(props: any) {
     const [editCompleted, setEditCompleted] = useState(props.completed);
     const [editStatus, setEditStatus] = useState(false);
 
-    function onEditHandler(e: any) {
+    function onEditHandler() {
 
         if (editStatus) {
             fetch(`${BACKEND_URL}/todos/${props.id}`, {
@@ -34,6 +34,22 @@ function TodoList(props: any) {
                 })
         }
         setEditStatus(!editStatus);
+    }
+
+    function onDeleteHandler() {
+        fetch(`${BACKEND_URL}/todos/${props.id}`, {
+            method: 'DELETE',
+            headers: {
+                "Authorization": `Bearer ${access_token}`,
+            },
+        })
+            .then(res => {
+                props.listReload();
+            })
+            .catch(error => {
+                alert("To-do list 수정에 실패하였습니다.");
+                console.log(error);
+            })
     }
 
 
@@ -69,6 +85,7 @@ function TodoList(props: any) {
                 {editStatus ? '저장' : '수정'}
             </button>
             <button
+                onClick={onDeleteHandler}
                 style={{
                     whiteSpace: 'nowrap',
                     padding: '10px 12px',
