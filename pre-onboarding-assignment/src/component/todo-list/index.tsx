@@ -23,7 +23,6 @@ function TodoMain() {
     }
 
     function listReload() {
-        console.log("reload");
         fetch(`${BACKEND_URL}/todos`, {
             method: "GET",
             headers: {
@@ -44,6 +43,7 @@ function TodoMain() {
     useEffect(() => {
         tokenVerificaion();
         listReload();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

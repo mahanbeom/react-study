@@ -12,6 +12,29 @@ function TodoList({ todo, onReload }: any) {
 
     useEffect(() => { }, [todo]);
 
+    function onCompleteHandler(e: any) {
+        setEditCompleted(e.target.checked);
+        fetch(`${BACKEND_URL}/todos/${todo.id}`, {
+            method: 'PUT',
+            headers: {
+                "Authorization": `Bearer ${access_token}`,
+                'Content-Type': "application/json",
+            },
+            body: JSON.stringify({
+                todo: editSentence,
+                isCompleted: !editCompleted,
+            }),
+        })
+            .then(res => res.json())
+            .then(res => {
+                onReload();
+            })
+            .catch(error => {
+                alert("To-do list 수정에 실패하였습니다.");
+                console.log(error);
+            })
+    }
+
     function onEditHandler() {
 
         if (editStatus) {
@@ -64,10 +87,10 @@ function TodoList({ todo, onReload }: any) {
             gap: '10px',
             marginBottom: '3vh'
         }}>
+            <input type="checkbox" checked={editCompleted} onChange={onCompleteHandler} />
             <FcCheckmark />
-            <span>{todo.id}</span>
             <input
-                className="todo-box"
+                className={editCompleted ? "todo-box completed" : "todo-box"}
                 type="text"
                 value={editSentence}
                 disabled={!editStatus}
