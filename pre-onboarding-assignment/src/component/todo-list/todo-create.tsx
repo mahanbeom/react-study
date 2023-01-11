@@ -53,6 +53,7 @@ function TodoCreate(props: any) {
                 <BiListPlus />
                 <input style={{
                     backgroundColor: 'transparent',
+                    width: '100%',
                     border: 'none',
                     outline: 'none',
                     fontSize: '16px'

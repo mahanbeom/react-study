@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BACKEND_URL } from "../../environment";
 import { FcCheckmark } from 'react-icons/fc';
 import './todo.scss';
 
-function TodoList(props: any) {
+function TodoList({ todo, onReload }: any) {
 
     const access_token = localStorage.getItem('login-token');
-    const [editSentence, setEditSentence] = useState(props.content);
-    const [editCompleted, setEditCompleted] = useState(props.completed);
+    const [editSentence, setEditSentence] = useState(todo.todo);
+    const [editCompleted, setEditCompleted] = useState(todo.isCompleted);
     const [editStatus, setEditStatus] = useState(false);
+
+    useEffect(() => { }, [todo]);
 
     function onEditHandler() {
 
         if (editStatus) {
-            fetch(`${BACKEND_URL}/todos/${props.id}`, {
+            fetch(`${BACKEND_URL}/todos/${todo.id}`, {
                 method: 'PUT',
                 headers: {
                     "Authorization": `Bearer ${access_token}`,
@@ -26,7 +28,7 @@ function TodoList(props: any) {
             })
                 .then(res => res.json())
                 .then(res => {
-                    props.listReload();
+                    onReload();
                 })
                 .catch(error => {
                     alert("To-do list 수정에 실패하였습니다.");
@@ -37,21 +39,21 @@ function TodoList(props: any) {
     }
 
     function onDeleteHandler() {
-        fetch(`${BACKEND_URL}/todos/${props.id}`, {
+        console.log(todo.id);
+        fetch(`${BACKEND_URL}/todos/${todo.id}`, {
             method: 'DELETE',
             headers: {
                 "Authorization": `Bearer ${access_token}`,
             },
         })
             .then(res => {
-                props.listReload();
+                onReload();
             })
             .catch(error => {
                 alert("To-do list 수정에 실패하였습니다.");
                 console.log(error);
             })
     }
-
 
     return (
         <div style={{
@@ -63,6 +65,7 @@ function TodoList(props: any) {
             marginBottom: '3vh'
         }}>
             <FcCheckmark />
+            <span>{todo.id}</span>
             <input
                 className="todo-box"
                 type="text"
