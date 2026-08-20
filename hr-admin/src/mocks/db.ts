@@ -3,7 +3,7 @@ import type { Employee } from '../features/employees/types';
 import { DEPARTMENTS } from '../features/employees/types';
 
 // 시드 고정 의사난수(mulberry32) — 새로고침해도 항상 같은 데이터가 나와 재현 가능하다
-function mulberry32(seed: number) {
+export function mulberry32(seed: number) {
   return () => {
     seed |= 0;
     seed = (seed + 0x6d2b79f5) | 0;

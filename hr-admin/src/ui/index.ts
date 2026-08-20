@@ -13,4 +13,6 @@ export { Input } from './Input';
 export { Pagination } from './Pagination';
 export { SearchInput } from './SearchInput';
 export { StatCard } from './StatCard';
+export { Tabs, type TabItem } from './Tabs';
+export { Textarea } from './Textarea';
 export { Select, type SelectOption } from './Select';

@@ -5,6 +5,7 @@ import { EmployeeCreatePage } from './pages/EmployeeCreatePage';
 import { EmployeeDetailPage } from './pages/EmployeeDetailPage';
 import { EmployeeEditPage } from './pages/EmployeeEditPage';
 import { EmployeeListPage } from './pages/EmployeeListPage';
+import { LeaveCreatePage } from './pages/LeaveCreatePage';
 import { LeavePage } from './pages/LeavePage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { path: 'employees/:employeeId', Component: EmployeeDetailPage },
       { path: 'employees/:employeeId/edit', Component: EmployeeEditPage },
       { path: 'leave', Component: LeavePage },
+      { path: 'leave/new', Component: LeaveCreatePage },
     ],
   },
   { path: '/login', Component: LoginPage },
