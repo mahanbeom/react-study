@@ -12,4 +12,5 @@ export { FormField } from './FormField';
 export { Input } from './Input';
 export { Pagination } from './Pagination';
 export { SearchInput } from './SearchInput';
+export { StatCard } from './StatCard';
 export { Select, type SelectOption } from './Select';

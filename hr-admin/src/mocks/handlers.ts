@@ -9,6 +9,7 @@ import {
   removeEmployee,
   updateEmployeeRecord,
 } from './db';
+import { buildMonthlyTrend, countHeadcount } from './dashboard';
 import { queryEmployees } from './employees';
 
 function pickParam<T extends string>(value: string | null, allowed: readonly T[]): T | undefined {
@@ -16,6 +17,16 @@ function pickParam<T extends string>(value: string | null, allowed: readonly T[]
 }
 
 export const handlers = [
+  http.get('/api/dashboard/summary', async () => {
+    await delay(300);
+    const employees = listEmployees();
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    return HttpResponse.json({
+      headcount: countHeadcount(employees),
+      monthlyTrend: buildMonthlyTrend(employees, currentMonth, 12),
+    });
+  }),
+
   http.get('/api/employees', async ({ request }) => {
     const url = new URL(request.url);
     await delay(300); // 네트워크 지연 시뮬레이션 — 로딩 상태를 눈으로 확인할 수 있게
