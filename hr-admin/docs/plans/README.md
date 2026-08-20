@@ -10,4 +10,4 @@
 | 3    | [직원 상세/등록/수정](3-employee-crud.md)   | `f5622c7`, `abbbe5e` |
 | 4    | [대시보드 홈](4-dashboard.md)               | `d6daa21`            |
 | 5    | [휴가 워크플로우](5-leave-workflow.md)      | `ab4b7a9`            |
-| 6    | 로그인 + 권한 분기 (예정)                   | —                    |
+| 6    | [로그인 + 권한 분기](6-auth.md)             | `2f7783f`            |

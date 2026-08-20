@@ -1,4 +1,6 @@
 import { createBrowserRouter } from 'react-router';
+import { RequireAuth } from '@/features/auth/components/RequireAuth';
+import { RequireRole } from '@/features/auth/components/RequireRole';
 import { AdminLayout } from './layouts/AdminLayout';
 import { DashboardPage } from './pages/DashboardPage';
 import { EmployeeCreatePage } from './pages/EmployeeCreatePage';
@@ -10,18 +12,32 @@ import { LeavePage } from './pages/LeavePage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+function RequireEmployeeWrite() {
+  return <RequireRole action="employee.write" />;
+}
+
 export const router = createBrowserRouter([
   {
-    path: '/',
-    Component: AdminLayout,
+    Component: RequireAuth,
     children: [
-      { index: true, Component: DashboardPage },
-      { path: 'employees', Component: EmployeeListPage },
-      { path: 'employees/new', Component: EmployeeCreatePage },
-      { path: 'employees/:employeeId', Component: EmployeeDetailPage },
-      { path: 'employees/:employeeId/edit', Component: EmployeeEditPage },
-      { path: 'leave', Component: LeavePage },
-      { path: 'leave/new', Component: LeaveCreatePage },
+      {
+        path: '/',
+        Component: AdminLayout,
+        children: [
+          { index: true, Component: DashboardPage },
+          { path: 'employees', Component: EmployeeListPage },
+          { path: 'employees/:employeeId', Component: EmployeeDetailPage },
+          { path: 'leave', Component: LeavePage },
+          { path: 'leave/new', Component: LeaveCreatePage },
+          {
+            Component: RequireEmployeeWrite,
+            children: [
+              { path: 'employees/new', Component: EmployeeCreatePage },
+              { path: 'employees/:employeeId/edit', Component: EmployeeEditPage },
+            ],
+          },
+        ],
+      },
     ],
   },
   { path: '/login', Component: LoginPage },

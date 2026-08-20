@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useAuthUser } from '@/features/auth/auth';
+import { can } from '@/features/auth/permissions';
 import {
   DEPARTMENT_LABELS,
   STATUS_BADGE_VARIANTS,
@@ -17,6 +19,8 @@ export function EmployeeDetailPage() {
   const query = useQuery(employeeDetailQuery(employeeId!));
   const deleteMutation = useDeleteEmployee();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const { user } = useAuthUser();
+  const canWrite = user !== null && can(user.role, 'employee.write');
 
   if (query.isPending) {
     return (
@@ -55,15 +59,19 @@ export function EmployeeDetailPage() {
           <Button variant="secondary" onClick={() => void navigate('/employees')}>
             목록
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => void navigate(`/employees/${employee.id}/edit`)}
-          >
-            수정
-          </Button>
-          <Button variant="danger" onClick={() => setConfirmOpen(true)}>
-            삭제
-          </Button>
+          {canWrite && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => void navigate(`/employees/${employee.id}/edit`)}
+              >
+                수정
+              </Button>
+              <Button variant="danger" onClick={() => setConfirmOpen(true)}>
+                삭제
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { delay, http, HttpResponse } from 'msw';
+import { can, type PermissionAction } from '../features/auth/permissions';
 import { employeeFormSchema } from '../features/employees/schema';
 import { DEPARTMENTS, EMPLOYEE_STATUSES } from '../features/employees/types';
 import {
@@ -14,6 +15,7 @@ import { LEAVE_STATUSES } from '../features/leave/types';
 import { decide, type LeaveDecisionAction } from '../features/leave/workflow';
 import { buildMonthlyTrend, countHeadcount } from './dashboard';
 import { queryEmployees } from './employees';
+import { authenticate, issueToken, resolveAuthHeader } from './authDb';
 import { queryLeaveRequests } from './leave';
 import {
   findLeaveRequest,
@@ -26,7 +28,39 @@ function pickParam<T extends string>(value: string | null, allowed: readonly T[]
   return allowed.includes(value as T) ? (value as T) : undefined;
 }
 
+/** 쓰기 엔드포인트 인가 — 실패 시 401/403 응답을, 성공 시 null을 반환한다 */
+function authorize(request: Request, action: PermissionAction): Response | null {
+  const user = resolveAuthHeader(request.headers.get('Authorization'));
+  if (!user) return HttpResponse.json({ message: '로그인이 필요합니다' }, { status: 401 });
+  if (!can(user.role, action)) {
+    return HttpResponse.json({ message: '권한이 없습니다' }, { status: 403 });
+  }
+  return null;
+}
+
 export const handlers = [
+  http.post('/api/auth/login', async ({ request }) => {
+    await delay(300);
+    const body = (await request.json()) as { email?: string; password?: string };
+    const user = authenticate(body.email ?? '', body.password ?? '');
+    if (!user) {
+      return HttpResponse.json(
+        { message: '이메일 또는 비밀번호가 올바르지 않습니다' },
+        { status: 401 },
+      );
+    }
+    return HttpResponse.json({ token: issueToken(user.id), user });
+  }),
+
+  http.get('/api/auth/me', async ({ request }) => {
+    await delay(150);
+    const user = resolveAuthHeader(request.headers.get('Authorization'));
+    if (!user) {
+      return HttpResponse.json({ message: '인증이 유효하지 않습니다' }, { status: 401 });
+    }
+    return HttpResponse.json(user);
+  }),
+
   http.get('/api/dashboard/summary', async () => {
     await delay(300);
     const employees = listEmployees();
@@ -63,6 +97,8 @@ export const handlers = [
 
   http.post('/api/employees', async ({ request }) => {
     await delay(300);
+    const denied = authorize(request, 'employee.write');
+    if (denied) return denied;
     // 실제 백엔드처럼 서버에서도 같은 스키마로 검증한다
     const parsed = employeeFormSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -79,6 +115,8 @@ export const handlers = [
 
   http.put('/api/employees/:id', async ({ params, request }) => {
     await delay(300);
+    const denied = authorize(request, 'employee.write');
+    if (denied) return denied;
     const id = params.id as string;
     const parsed = employeeFormSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -111,6 +149,8 @@ export const handlers = [
 
   http.post('/api/leave-requests', async ({ request }) => {
     await delay(300);
+    const denied = authorize(request, 'leave.request');
+    if (denied) return denied;
     const parsed = leaveRequestFormSchema.safeParse(await request.json());
     if (!parsed.success) {
       return HttpResponse.json(
@@ -130,6 +170,8 @@ export const handlers = [
 
   http.patch('/api/leave-requests/:id/decision', async ({ params, request }) => {
     await delay(300);
+    const denied = authorize(request, 'leave.decide');
+    if (denied) return denied;
     const body = (await request.json()) as { action?: string; rejectReason?: string };
     if (body.action !== 'approve' && body.action !== 'reject') {
       return HttpResponse.json({ message: '잘못된 요청입니다' }, { status: 400 });
@@ -155,8 +197,10 @@ export const handlers = [
     return HttpResponse.json(result.request);
   }),
 
-  http.delete('/api/employees/:id', async ({ params }) => {
+  http.delete('/api/employees/:id', async ({ params, request }) => {
     await delay(300);
+    const denied = authorize(request, 'employee.write');
+    if (denied) return denied;
     if (!removeEmployee(params.id as string)) {
       return HttpResponse.json({ message: '직원을 찾을 수 없습니다' }, { status: 404 });
     }

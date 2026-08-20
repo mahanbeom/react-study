@@ -1,6 +1,8 @@
 import { Outlet, useLocation } from 'react-router';
-import { CalendarDays, LayoutDashboard, Users } from 'lucide-react';
-import { AppShell, Header, Sidebar, type SidebarItem } from '@/ui';
+import { CalendarDays, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { useAuthUser, useLogout } from '@/features/auth/auth';
+import { ROLE_BADGE_VARIANTS, ROLE_LABELS } from '@/features/auth/labels';
+import { AppShell, Badge, Header, Sidebar, type SidebarItem } from '@/ui';
 
 const NAV_ITEMS: SidebarItem[] = [
   { label: '대시보드', to: '/', end: true, icon: <LayoutDashboard size={18} /> },
@@ -16,6 +18,9 @@ function usePageTitle(): string {
 
 export function AdminLayout() {
   const title = usePageTitle();
+  const { user } = useAuthUser();
+  const logout = useLogout();
+
   return (
     <AppShell
       sidebar={
@@ -23,16 +28,33 @@ export function AdminLayout() {
           brand={<span className="text-lg font-bold">HR Admin</span>}
           items={NAV_ITEMS}
           footer={
-            // 6단계(로그인/권한)에서 실제 로그인 사용자 정보로 교체한다
-            <div className="flex items-center gap-3 px-2 py-1">
-              <div className="flex size-8 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold">
-                관
+            user && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 px-2 py-1">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold">
+                    {user.name.charAt(0)}
+                  </div>
+                  <div className="min-w-0 text-sm">
+                    <p className="flex items-center gap-1.5 font-medium">
+                      {user.name}
+                      <Badge variant={ROLE_BADGE_VARIANTS[user.role]}>
+                        {ROLE_LABELS[user.role]}
+                      </Badge>
+                    </p>
+                    <p className="truncate text-xs text-slate-500">{user.email}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm
+                    text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <LogOut size={16} />
+                  로그아웃
+                </button>
               </div>
-              <div className="text-sm">
-                <p className="font-medium">관리자</p>
-                <p className="text-xs text-slate-500">admin@example.com</p>
-              </div>
-            </div>
+            )
           }
         />
       }

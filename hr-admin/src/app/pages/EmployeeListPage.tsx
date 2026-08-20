@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router';
+import { useAuthUser } from '@/features/auth/auth';
+import { can } from '@/features/auth/permissions';
 import {
   DEPARTMENT_LABELS,
   STATUS_BADGE_VARIANTS,
@@ -42,6 +44,8 @@ const COLUMNS: Column<Employee>[] = [
 export function EmployeeListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuthUser();
+  const canWrite = user !== null && can(user.role, 'employee.write');
 
   const search = searchParams.get('search') ?? '';
   const department = pickParam(searchParams.get('department'), DEPARTMENTS);
@@ -89,12 +93,14 @@ export function EmployeeListPage() {
           allLabel="전체 상태"
           options={EMPLOYEE_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
         />
-        <div className="ml-auto">
-          <Button onClick={() => void navigate('/employees/new')}>
-            <UserPlus size={16} />
-            직원 등록
-          </Button>
-        </div>
+        {canWrite && (
+          <div className="ml-auto">
+            <Button onClick={() => void navigate('/employees/new')}>
+              <UserPlus size={16} />
+              직원 등록
+            </Button>
+          </div>
+        )}
       </div>
 
       {query.isPending ? (

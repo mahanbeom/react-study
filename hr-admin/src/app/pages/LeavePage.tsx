@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { CalendarPlus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import { useAuthUser } from '@/features/auth/auth';
+import { can } from '@/features/auth/permissions';
 import { RejectDialog } from '@/features/leave/components/RejectDialog';
 import {
   LEAVE_STATUS_BADGE_VARIANTS,
@@ -36,6 +38,8 @@ export function LeavePage() {
 
   const query = useQuery(leaveListQuery({ status, page, pageSize: PAGE_SIZE }));
   const decideMutation = useDecideLeaveRequest();
+  const { user } = useAuthUser();
+  const canDecide = user !== null && can(user.role, 'leave.decide');
 
   function changeTab(value: string) {
     setSearchParams({ status: value }); // page는 1로 리셋
@@ -102,7 +106,7 @@ export function LeavePage() {
       key: 'actions',
       header: '',
       render: (r) =>
-        r.status === 'pending' ? (
+        canDecide && r.status === 'pending' ? (
           <div className="flex justify-end gap-1.5">
             <Button
               className="h-7 px-2.5 text-xs"
