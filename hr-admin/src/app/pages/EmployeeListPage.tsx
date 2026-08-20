@@ -7,7 +7,8 @@ import {
 } from '@/features/employees/labels';
 import { employeeListQuery } from '@/features/employees/queries';
 import { DEPARTMENTS, EMPLOYEE_STATUSES, type Employee } from '@/features/employees/types';
-import { Badge, DataTable, Pagination, SearchInput, Select, type Column } from '@/ui';
+import { Badge, Button, DataTable, Pagination, SearchInput, Select, type Column } from '@/ui';
+import { UserPlus } from 'lucide-react';
 
 const PAGE_SIZE = 10;
 
@@ -88,6 +89,12 @@ export function EmployeeListPage() {
           allLabel="전체 상태"
           options={EMPLOYEE_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
         />
+        <div className="ml-auto">
+          <Button onClick={() => void navigate('/employees/new')}>
+            <UserPlus size={16} />
+            직원 등록
+          </Button>
+        </div>
       </div>
 
       {query.isPending ? (

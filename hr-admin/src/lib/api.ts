@@ -19,5 +19,6 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     throw new ApiError(res.status, `API ${res.status}: ${init?.method ?? 'GET'} ${path}`);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }

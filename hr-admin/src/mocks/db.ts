@@ -1,3 +1,4 @@
+import type { EmployeeFormValues } from '../features/employees/schema';
 import type { Employee } from '../features/employees/types';
 import { DEPARTMENTS } from '../features/employees/types';
 
@@ -77,4 +78,39 @@ function generateEmployees(count: number): Employee[] {
   });
 }
 
-export const EMPLOYEES = generateEmployees(52);
+// 인메모리 저장소 — 변경 사항은 새로고침 전까지 유지된다
+let employees = generateEmployees(52);
+let nextId = employees.length + 1;
+
+export function listEmployees(): Employee[] {
+  return employees;
+}
+
+export function findEmployee(id: string): Employee | undefined {
+  return employees.find((e) => e.id === id);
+}
+
+export function isEmailTaken(email: string, excludeId?: string): boolean {
+  const normalized = email.toLowerCase();
+  return employees.some((e) => e.email.toLowerCase() === normalized && e.id !== excludeId);
+}
+
+export function insertEmployee(values: EmployeeFormValues): Employee {
+  const employee: Employee = { id: String(nextId++), ...values };
+  employees = [employee, ...employees];
+  return employee;
+}
+
+export function updateEmployeeRecord(id: string, values: EmployeeFormValues): Employee | undefined {
+  const existing = findEmployee(id);
+  if (!existing) return undefined;
+  const updated: Employee = { ...existing, ...values };
+  employees = employees.map((e) => (e.id === id ? updated : e));
+  return updated;
+}
+
+export function removeEmployee(id: string): boolean {
+  const before = employees.length;
+  employees = employees.filter((e) => e.id !== id);
+  return employees.length < before;
+}

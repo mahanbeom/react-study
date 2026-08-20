@@ -3,6 +3,7 @@ import { AdminLayout } from './layouts/AdminLayout';
 import { DashboardPage } from './pages/DashboardPage';
 import { EmployeeCreatePage } from './pages/EmployeeCreatePage';
 import { EmployeeDetailPage } from './pages/EmployeeDetailPage';
+import { EmployeeEditPage } from './pages/EmployeeEditPage';
 import { EmployeeListPage } from './pages/EmployeeListPage';
 import { LeavePage } from './pages/LeavePage';
 import { LoginPage } from './pages/LoginPage';
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { path: 'employees', Component: EmployeeListPage },
       { path: 'employees/new', Component: EmployeeCreatePage },
       { path: 'employees/:employeeId', Component: EmployeeDetailPage },
+      { path: 'employees/:employeeId/edit', Component: EmployeeEditPage },
       { path: 'leave', Component: LeavePage },
     ],
   },
