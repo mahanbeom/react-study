@@ -3,3 +3,8 @@
 export { AppShell } from './layout/AppShell';
 export { Header } from './layout/Header';
 export { Sidebar, type SidebarItem } from './layout/Sidebar';
+export { Badge, type BadgeVariant } from './Badge';
+export { DataTable, type Column } from './DataTable';
+export { Pagination } from './Pagination';
+export { SearchInput } from './SearchInput';
+export { Select, type SelectOption } from './Select';

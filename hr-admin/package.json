@@ -10,9 +10,12 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.4",
     "lucide-react": "^1.32.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -27,10 +30,17 @@
     "@vitejs/plugin-react": "^6.0.4",
     "eslint": "^10.8.1",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "msw": "^2.15.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
-    "vite": "^8.2.0"
+    "vite": "^8.2.0",
+    "vitest": "^4.1.11"
   },
-  "prettier": "@mahanbeom/kit/prettier"
+  "prettier": "@mahanbeom/kit/prettier",
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
 }
