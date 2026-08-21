@@ -5,6 +5,7 @@ import type { ReactElement } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { routes } from '@/app/router';
 import { setToken } from '@/lib/token';
+import { ToastProvider } from '@/ui';
 
 /** 테스트마다 새 QueryClient — retry:false로 401/409가 재시도 없이 즉시 에러로 떨어지게 한다 */
 function createTestQueryClient() {
@@ -25,7 +26,9 @@ export function renderApp(initialEntry = '/') {
   const router = createMemoryRouter(routes, { initialEntries: [initialEntry] });
   const view = render(
     <QueryClientProvider client={createTestQueryClient()}>
-      <RouterProvider router={router} />
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
     </QueryClientProvider>,
   );
   return { user: userEvent.setup(), router, ...view };
@@ -38,7 +41,9 @@ export function renderWithProviders(ui: ReactElement, { initialEntry = '/' } = {
   });
   const view = render(
     <QueryClientProvider client={createTestQueryClient()}>
-      <RouterProvider router={router} />
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
     </QueryClientProvider>,
   );
   return { user: userEvent.setup(), router, ...view };
