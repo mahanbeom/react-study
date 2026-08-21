@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuthUser } from '@/features/auth/auth';
 import { can } from '@/features/auth/permissions';
-import {
-  DEPARTMENT_LABELS,
-  STATUS_BADGE_VARIANTS,
-  STATUS_LABELS,
-} from '@/features/employees/labels';
+import { departmentListQuery } from '@/features/departments/queries';
+import { STATUS_BADGE_VARIANTS, STATUS_LABELS } from '@/features/employees/labels';
 import { employeeListQuery } from '@/features/employees/queries';
 import { DEPARTMENTS, EMPLOYEE_STATUSES, type Employee } from '@/features/employees/types';
 import { Badge, Button, DataTable, Pagination, SearchInput, Select, type Column } from '@/ui';
@@ -18,34 +16,49 @@ function pickParam<T extends string>(value: string | null, allowed: readonly T[]
   return allowed.includes(value as T) ? (value as T) : undefined;
 }
 
-const COLUMNS: Column<Employee>[] = [
-  {
-    key: 'name',
-    header: '이름',
-    render: (e) => (
-      <div>
-        <p className="font-medium text-slate-900">{e.name}</p>
-        <p className="text-xs text-slate-500">{e.email}</p>
-      </div>
-    ),
-  },
-  { key: 'department', header: '부서', render: (e) => DEPARTMENT_LABELS[e.department] },
-  { key: 'position', header: '직급', render: (e) => e.position },
-  {
-    key: 'status',
-    header: '상태',
-    render: (e) => (
-      <Badge variant={STATUS_BADGE_VARIANTS[e.status]}>{STATUS_LABELS[e.status]}</Badge>
-    ),
-  },
-  { key: 'hiredAt', header: '입사일', render: (e) => e.hiredAt, className: 'text-slate-500' },
-];
-
 export function EmployeeListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuthUser();
   const canWrite = user !== null && can(user.role, 'employee.write');
+
+  // 부서 이름은 정적 매핑이 아니라 엔티티(API)에서 온다 — staleTime Infinity라 요청은 1회뿐
+  const departmentsQuery = useQuery(departmentListQuery());
+  const departmentNames = useMemo(
+    () => new Map((departmentsQuery.data ?? []).map((d) => [d.id, d.name])),
+    [departmentsQuery.data],
+  );
+
+  const columns = useMemo<Column<Employee>[]>(
+    () => [
+      {
+        key: 'name',
+        header: '이름',
+        render: (e) => (
+          <div>
+            <p className="font-medium text-slate-900">{e.name}</p>
+            <p className="text-xs text-slate-500">{e.email}</p>
+          </div>
+        ),
+      },
+      {
+        key: 'department',
+        header: '부서',
+        // 부서 목록이 아직 안 왔으면 raw id 폴백 — 마스터 데이터 로딩이 목록을 막지 않게
+        render: (e) => departmentNames.get(e.department) ?? e.department,
+      },
+      { key: 'position', header: '직급', render: (e) => e.position },
+      {
+        key: 'status',
+        header: '상태',
+        render: (e) => (
+          <Badge variant={STATUS_BADGE_VARIANTS[e.status]}>{STATUS_LABELS[e.status]}</Badge>
+        ),
+      },
+      { key: 'hiredAt', header: '입사일', render: (e) => e.hiredAt, className: 'text-slate-500' },
+    ],
+    [departmentNames],
+  );
 
   const search = searchParams.get('search') ?? '';
   const department = pickParam(searchParams.get('department'), DEPARTMENTS);
@@ -84,8 +97,8 @@ export function EmployeeListPage() {
         <Select
           value={department ?? ''}
           onChange={(value) => updateParams({ department: value })}
-          allLabel="전체 부서"
-          options={DEPARTMENTS.map((d) => ({ value: d, label: DEPARTMENT_LABELS[d] }))}
+          allLabel={departmentsQuery.isPending ? '불러오는 중…' : '전체 부서'}
+          options={(departmentsQuery.data ?? []).map((d) => ({ value: d.id, label: d.name }))}
         />
         <Select
           value={status ?? ''}
@@ -121,7 +134,7 @@ export function EmployeeListPage() {
       ) : (
         <>
           <DataTable
-            columns={COLUMNS}
+            columns={columns}
             rows={query.data.items}
             rowKey={(e) => e.id}
             onRowClick={(e) => void navigate(`/employees/${e.id}`)}

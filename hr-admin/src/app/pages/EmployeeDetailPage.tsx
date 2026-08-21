@@ -3,11 +3,8 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useAuthUser } from '@/features/auth/auth';
 import { can } from '@/features/auth/permissions';
-import {
-  DEPARTMENT_LABELS,
-  STATUS_BADGE_VARIANTS,
-  STATUS_LABELS,
-} from '@/features/employees/labels';
+import { departmentListQuery } from '@/features/departments/queries';
+import { STATUS_BADGE_VARIANTS, STATUS_LABELS } from '@/features/employees/labels';
 import { useDeleteEmployee } from '@/features/employees/mutations';
 import { employeeDetailQuery } from '@/features/employees/queries';
 import { ApiError } from '@/lib/api';
@@ -17,6 +14,7 @@ export function EmployeeDetailPage() {
   const { employeeId } = useParams();
   const navigate = useNavigate();
   const query = useQuery(employeeDetailQuery(employeeId!));
+  const departmentsQuery = useQuery(departmentListQuery());
   const deleteMutation = useDeleteEmployee();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { user } = useAuthUser();
@@ -79,7 +77,13 @@ export function EmployeeDetailPage() {
         <DescriptionList
           items={[
             { label: '이메일', value: employee.email },
-            { label: '부서', value: DEPARTMENT_LABELS[employee.department] },
+            {
+              label: '부서',
+              // 부서 목록이 아직 안 왔으면 raw id 폴백
+              value:
+                departmentsQuery.data?.find((d) => d.id === employee.department)?.name ??
+                employee.department,
+            },
             { label: '직급', value: employee.position },
             { label: '입사일', value: employee.hiredAt },
             { label: '퇴사일', value: employee.resignedAt ?? '—' },

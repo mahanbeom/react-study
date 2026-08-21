@@ -16,6 +16,8 @@ async function fillValidForm(user: ReturnType<typeof renderForm>['user']) {
   await user.type(screen.getByLabelText(/^이름/), '홍길동');
   await user.type(screen.getByLabelText(/^이메일/), 'new@hrcorp.dev');
   // 부서/상태 Select는 label 연결이 없어 combobox 순서로 접근한다 (0: 부서, 1: 상태)
+  // 부서 옵션은 API(GET /api/departments)에서 오므로 렌더될 때까지 기다린다
+  await screen.findByRole('option', { name: '개발' });
   const [departmentSelect] = screen.getAllByRole('combobox');
   await user.selectOptions(departmentSelect!, '개발');
   await user.type(screen.getByLabelText(/^직급/), '대리');
@@ -96,6 +98,7 @@ describe('EmployeeForm', () => {
     await user.type(await screen.findByLabelText(/^이름/), '홍길동');
     // 시드 데이터에 항상 존재하는 이메일 (id 1번 직원)
     await user.type(screen.getByLabelText(/^이메일/), 'member01@hrcorp.dev');
+    await screen.findByRole('option', { name: '개발' });
     const [departmentSelect] = screen.getAllByRole('combobox');
     await user.selectOptions(departmentSelect!, '개발');
     await user.type(screen.getByLabelText(/^직급/), '대리');

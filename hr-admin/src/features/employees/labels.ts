@@ -1,14 +1,7 @@
 import type { BadgeVariant } from '@/ui';
-import type { DepartmentId, EmployeeStatus } from './types';
+import type { EmployeeStatus } from './types';
 
-export const DEPARTMENT_LABELS: Record<DepartmentId, string> = {
-  engineering: '개발',
-  design: '디자인',
-  product: '기획',
-  hr: '인사',
-  finance: '재무',
-  sales: '영업',
-};
+// 부서 이름은 정적 매핑이 아니라 Department 엔티티(GET /api/departments)에서 온다
 
 export const STATUS_LABELS: Record<EmployeeStatus, string> = {
   active: '재직',

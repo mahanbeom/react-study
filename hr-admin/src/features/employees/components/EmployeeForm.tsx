@@ -1,10 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
+import { departmentListQuery } from '@/features/departments/queries';
 import { ApiError } from '@/lib/api';
 import { Button, FormField, Input, Select } from '@/ui';
-import { DEPARTMENT_LABELS, STATUS_LABELS } from '../labels';
+import { STATUS_LABELS } from '../labels';
 import { employeeFormSchema, type EmployeeFormInput, type EmployeeFormValues } from '../schema';
-import { DEPARTMENTS, EMPLOYEE_STATUSES, type DepartmentId } from '../types';
+import { EMPLOYEE_STATUSES, type DepartmentId } from '../types';
 
 const BLANK: EmployeeFormInput = {
   name: '',
@@ -44,6 +46,7 @@ export function EmployeeForm({
   });
 
   const status = watch('status');
+  const departmentsQuery = useQuery(departmentListQuery());
 
   async function submit(values: EmployeeFormValues) {
     try {
@@ -83,8 +86,11 @@ export function EmployeeForm({
               <Select
                 value={field.value}
                 onChange={field.onChange}
-                allLabel="선택하세요"
-                options={DEPARTMENTS.map((d) => ({ value: d, label: DEPARTMENT_LABELS[d] }))}
+                allLabel={departmentsQuery.isPending ? '불러오는 중…' : '선택하세요'}
+                options={(departmentsQuery.data ?? []).map((d) => ({
+                  value: d.id,
+                  label: d.name,
+                }))}
               />
             )}
           />
