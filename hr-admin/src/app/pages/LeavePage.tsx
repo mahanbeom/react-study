@@ -13,7 +13,6 @@ import {
 import { useDecideLeaveRequest } from '@/features/leave/mutations';
 import { leaveListQuery } from '@/features/leave/queries';
 import { LEAVE_STATUSES, type LeaveRequest, type LeaveStatus } from '@/features/leave/types';
-import { ApiError } from '@/lib/api';
 import { Badge, Button, ConfirmDialog, DataTable, Pagination, Tabs, type Column } from '@/ui';
 
 const PAGE_SIZE = 10;
@@ -52,24 +51,16 @@ export function LeavePage() {
   }
 
   function closeDialog() {
-    decideMutation.reset();
     setDialog(null);
   }
 
   function handleDecide(rejectReason?: string) {
     if (!dialog) return;
-    decideMutation.mutate(
-      { id: dialog.request.id, action: dialog.action, rejectReason },
-      { onSuccess: closeDialog },
-    );
+    decideMutation.mutate({ id: dialog.request.id, action: dialog.action, rejectReason });
+    // 낙관적 업데이트: 서버 응답을 기다리지 않고 바로 닫는다.
+    // 결과 피드백(성공/롤백)은 훅의 토스트가 담당한다.
+    closeDialog();
   }
-
-  const conflictError =
-    decideMutation.error instanceof ApiError && decideMutation.error.status === 409
-      ? '이미 처리된 신청입니다. 목록을 갱신했습니다.'
-      : decideMutation.isError
-        ? '처리에 실패했습니다. 다시 시도해주세요.'
-        : undefined;
 
   const columns: Column<LeaveRequest>[] = [
     { key: 'employee', header: '신청자', render: (r) => r.employeeName },
@@ -168,20 +159,14 @@ export function LeavePage() {
       <ConfirmDialog
         open={dialog?.action === 'approve'}
         title="휴가 승인"
-        description={
-          conflictError ??
-          (dialog ? `${dialog.request.employeeName} 님의 휴가 신청을 승인할까요?` : '')
-        }
+        description={dialog ? `${dialog.request.employeeName} 님의 휴가 신청을 승인할까요?` : ''}
         confirmLabel="승인"
-        loading={decideMutation.isPending}
         onConfirm={() => handleDecide()}
         onClose={closeDialog}
       />
       <RejectDialog
         open={dialog?.action === 'reject'}
         requesterName={dialog?.request.employeeName ?? ''}
-        loading={decideMutation.isPending}
-        errorMessage={conflictError}
         onConfirm={(reason) => handleDecide(reason)}
         onClose={closeDialog}
       />
