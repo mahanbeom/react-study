@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { AuthUser } from './types';
+import type { AuthProfile } from './types';
 
 export interface LoginPayload {
   email: string;
@@ -8,13 +8,13 @@ export interface LoginPayload {
 
 export interface LoginResponse {
   token: string;
-  user: AuthUser;
+  user: AuthProfile;
 }
 
 export function login(payload: LoginPayload): Promise<LoginResponse> {
   return api('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
 }
 
-export function fetchMe(): Promise<AuthUser> {
+export function fetchMe(): Promise<AuthProfile> {
   return api('/auth/me');
 }

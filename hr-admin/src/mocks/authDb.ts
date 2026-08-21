@@ -4,16 +4,41 @@ interface MockUser extends AuthUser {
   password: string;
 }
 
-// 연습용 데모 계정 — 로그인 화면에 안내된다
+// 연습용 데모 계정 — 로그인 화면에 안내된다. member 계정은 직원 시드와 1:1 연결
 const USERS: MockUser[] = [
-  { id: 'u1', name: '김관리', email: 'admin@hrcorp.dev', password: 'admin123', role: 'admin' },
-  { id: 'u2', name: '이멤버', email: 'member@hrcorp.dev', password: 'member123', role: 'member' },
+  // admin은 직원이 아닐 수 있다 — employeeId null 허용의 근거
+  {
+    id: 'u1',
+    name: '김관리',
+    email: 'admin@hrcorp.dev',
+    password: 'admin123',
+    role: 'admin',
+    employeeId: null,
+  },
+  // 직원 '22' 윤하은(개발팀 대리, 비부서장) — 이름도 직원과 일치시킨다
+  {
+    id: 'u2',
+    name: '윤하은',
+    email: 'member@hrcorp.dev',
+    password: 'member123',
+    role: 'member',
+    employeeId: '22',
+  },
+  // 직원 '1' 조우진(개발팀 부서장) — role은 member 그대로, 부서장 여부는 부서 관계에서 파생된다
+  {
+    id: 'u3',
+    name: '조우진',
+    email: 'manager@hrcorp.dev',
+    password: 'manager123',
+    role: 'member',
+    employeeId: '1',
+  },
 ];
 
 const TOKEN_PREFIX = 'mock-token-';
 
-function toAuthUser({ id, name, email, role }: MockUser): AuthUser {
-  return { id, name, email, role };
+function toAuthUser({ id, name, email, role, employeeId }: MockUser): AuthUser {
+  return { id, name, email, role, employeeId };
 }
 
 export function authenticate(email: string, password: string): AuthUser | null {

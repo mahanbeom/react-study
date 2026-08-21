@@ -17,6 +17,7 @@ import { decide, type LeaveDecisionAction } from '../features/leave/workflow';
 import { buildMonthlyTrend, countHeadcount } from './dashboard';
 import { queryEmployees } from './employees';
 import { authenticate, issueToken, resolveAuthHeader } from './authDb';
+import { buildAuthProfile } from './authProfile';
 import { listDepartments } from './departmentDb';
 import { queryLeaveRequests } from './leave';
 import {
@@ -51,7 +52,11 @@ export const handlers = [
         { status: 401 },
       );
     }
-    return HttpResponse.json({ token: issueToken(user.id), user });
+    // login/me가 같은 조립 함수를 거쳐야 me 캐시와 응답 형태가 일치한다
+    return HttpResponse.json({
+      token: issueToken(user.id),
+      user: buildAuthProfile(user, listEmployees(), listDepartments()),
+    });
   }),
 
   http.get('/api/auth/me', async ({ request }) => {
@@ -60,7 +65,7 @@ export const handlers = [
     if (!user) {
       return HttpResponse.json({ message: '인증이 유효하지 않습니다' }, { status: 401 });
     }
-    return HttpResponse.json(user);
+    return HttpResponse.json(buildAuthProfile(user, listEmployees(), listDepartments()));
   }),
 
   http.get('/api/departments', async () => {
