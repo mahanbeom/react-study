@@ -93,3 +93,9 @@ export function insertLeaveRequest(
 export function replaceLeaveRequest(updated: LeaveRequest): void {
   leaveRequests = leaveRequests.map((r) => (r.id === updated.id ? updated : r));
 }
+
+/** 테스트용: 시드 데이터로 저장소를 되돌린다 — 시드가 직원 목록을 읽으므로 resetDb 이후에 호출할 것 */
+export function resetLeaveDb(): void {
+  leaveRequests = generateLeaveRequests(18);
+  nextId = leaveRequests.length + 1;
+}

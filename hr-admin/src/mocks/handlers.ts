@@ -1,4 +1,5 @@
-import { delay, http, HttpResponse } from 'msw';
+import { http, HttpResponse } from 'msw';
+import { networkDelay } from './latency';
 import { can, type PermissionAction } from '../features/auth/permissions';
 import { employeeFormSchema } from '../features/employees/schema';
 import { DEPARTMENTS, EMPLOYEE_STATUSES } from '../features/employees/types';
@@ -40,7 +41,7 @@ function authorize(request: Request, action: PermissionAction): Response | null 
 
 export const handlers = [
   http.post('/api/auth/login', async ({ request }) => {
-    await delay(300);
+    await networkDelay(300);
     const body = (await request.json()) as { email?: string; password?: string };
     const user = authenticate(body.email ?? '', body.password ?? '');
     if (!user) {
@@ -53,7 +54,7 @@ export const handlers = [
   }),
 
   http.get('/api/auth/me', async ({ request }) => {
-    await delay(150);
+    await networkDelay(150);
     const user = resolveAuthHeader(request.headers.get('Authorization'));
     if (!user) {
       return HttpResponse.json({ message: '인증이 유효하지 않습니다' }, { status: 401 });
@@ -62,7 +63,7 @@ export const handlers = [
   }),
 
   http.get('/api/dashboard/summary', async () => {
-    await delay(300);
+    await networkDelay(300);
     const employees = listEmployees();
     const currentMonth = new Date().toISOString().slice(0, 7);
     return HttpResponse.json({
@@ -73,7 +74,7 @@ export const handlers = [
 
   http.get('/api/employees', async ({ request }) => {
     const url = new URL(request.url);
-    await delay(300); // 네트워크 지연 시뮬레이션 — 로딩 상태를 눈으로 확인할 수 있게
+    await networkDelay(300); // 네트워크 지연 시뮬레이션 — 로딩 상태를 눈으로 확인할 수 있게
 
     return HttpResponse.json(
       queryEmployees(listEmployees(), {
@@ -87,7 +88,7 @@ export const handlers = [
   }),
 
   http.get('/api/employees/:id', async ({ params }) => {
-    await delay(200);
+    await networkDelay(200);
     const employee = findEmployee(params.id as string);
     if (!employee) {
       return HttpResponse.json({ message: '직원을 찾을 수 없습니다' }, { status: 404 });
@@ -96,7 +97,7 @@ export const handlers = [
   }),
 
   http.post('/api/employees', async ({ request }) => {
-    await delay(300);
+    await networkDelay(300);
     const denied = authorize(request, 'employee.write');
     if (denied) return denied;
     // 실제 백엔드처럼 서버에서도 같은 스키마로 검증한다
@@ -114,7 +115,7 @@ export const handlers = [
   }),
 
   http.put('/api/employees/:id', async ({ params, request }) => {
-    await delay(300);
+    await networkDelay(300);
     const denied = authorize(request, 'employee.write');
     if (denied) return denied;
     const id = params.id as string;
@@ -137,7 +138,7 @@ export const handlers = [
 
   http.get('/api/leave-requests', async ({ request }) => {
     const url = new URL(request.url);
-    await delay(300);
+    await networkDelay(300);
     return HttpResponse.json(
       queryLeaveRequests(listLeaveRequests(), {
         page: Number(url.searchParams.get('page')) || undefined,
@@ -148,7 +149,7 @@ export const handlers = [
   }),
 
   http.post('/api/leave-requests', async ({ request }) => {
-    await delay(300);
+    await networkDelay(300);
     const denied = authorize(request, 'leave.request');
     if (denied) return denied;
     const parsed = leaveRequestFormSchema.safeParse(await request.json());
@@ -169,7 +170,7 @@ export const handlers = [
   }),
 
   http.patch('/api/leave-requests/:id/decision', async ({ params, request }) => {
-    await delay(300);
+    await networkDelay(300);
     const denied = authorize(request, 'leave.decide');
     if (denied) return denied;
     const body = (await request.json()) as { action?: string; rejectReason?: string };
@@ -198,7 +199,7 @@ export const handlers = [
   }),
 
   http.delete('/api/employees/:id', async ({ params, request }) => {
-    await delay(300);
+    await networkDelay(300);
     const denied = authorize(request, 'employee.write');
     if (denied) return denied;
     if (!removeEmployee(params.id as string)) {

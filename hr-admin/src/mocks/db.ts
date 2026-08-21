@@ -114,3 +114,9 @@ export function removeEmployee(id: string): boolean {
   employees = employees.filter((e) => e.id !== id);
   return employees.length < before;
 }
+
+/** 테스트용: 시드 데이터로 저장소를 되돌린다 (시드 고정이라 결정적) */
+export function resetDb(): void {
+  employees = generateEmployees(52);
+  nextId = employees.length + 1;
+}

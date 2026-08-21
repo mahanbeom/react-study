@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, type RouteObject } from 'react-router';
 import { RequireAuth } from '@/features/auth/components/RequireAuth';
 import { RequireRole } from '@/features/auth/components/RequireRole';
 import { AdminLayout } from './layouts/AdminLayout';
@@ -16,7 +16,8 @@ function RequireEmployeeWrite() {
   return <RequireRole action="employee.write" />;
 }
 
-export const router = createBrowserRouter([
+// 라우트 정의를 배열로 분리 — 테스트에서 createMemoryRouter로 같은 트리를 렌더하기 위함
+export const routes: RouteObject[] = [
   {
     Component: RequireAuth,
     children: [
@@ -42,4 +43,6 @@ export const router = createBrowserRouter([
   },
   { path: '/login', Component: LoginPage },
   { path: '*', Component: NotFoundPage },
-]);
+];
+
+export const router = createBrowserRouter(routes);
