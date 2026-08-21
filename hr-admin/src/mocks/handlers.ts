@@ -17,6 +17,7 @@ import { decide, type LeaveDecisionAction } from '../features/leave/workflow';
 import { buildMonthlyTrend, countHeadcount } from './dashboard';
 import { queryEmployees } from './employees';
 import { authenticate, issueToken, resolveAuthHeader } from './authDb';
+import { listDepartments } from './departmentDb';
 import { queryLeaveRequests } from './leave';
 import {
   findLeaveRequest,
@@ -60,6 +61,11 @@ export const handlers = [
       return HttpResponse.json({ message: '인증이 유효하지 않습니다' }, { status: 401 });
     }
     return HttpResponse.json(user);
+  }),
+
+  http.get('/api/departments', async () => {
+    await networkDelay(200);
+    return HttpResponse.json(listDepartments());
   }),
 
   http.get('/api/dashboard/summary', async () => {

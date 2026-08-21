@@ -1,7 +1,7 @@
 import type { BadgeVariant } from '@/ui';
-import type { Department, EmployeeStatus } from './types';
+import type { DepartmentId, EmployeeStatus } from './types';
 
-export const DEPARTMENT_LABELS: Record<Department, string> = {
+export const DEPARTMENT_LABELS: Record<DepartmentId, string> = {
   engineering: '개발',
   design: '디자인',
   product: '기획',

@@ -4,13 +4,13 @@ import { ApiError } from '@/lib/api';
 import { Button, FormField, Input, Select } from '@/ui';
 import { DEPARTMENT_LABELS, STATUS_LABELS } from '../labels';
 import { employeeFormSchema, type EmployeeFormInput, type EmployeeFormValues } from '../schema';
-import { DEPARTMENTS, EMPLOYEE_STATUSES, type Department } from '../types';
+import { DEPARTMENTS, EMPLOYEE_STATUSES, type DepartmentId } from '../types';
 
 const BLANK: EmployeeFormInput = {
   name: '',
   email: '',
   // 빈 값으로 시작해 "선택하세요"를 강제한다 — 제출 시 zod enum 검증에 걸린다
-  department: '' as Department,
+  department: '' as DepartmentId,
   position: '',
   status: 'active',
   hiredAt: '',
