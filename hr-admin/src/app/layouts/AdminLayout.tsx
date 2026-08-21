@@ -42,6 +42,13 @@ export function AdminLayout() {
                       </Badge>
                     </p>
                     <p className="truncate text-xs text-slate-500">{user.email}</p>
+                    {/* 부서/부서장은 me 응답의 파생값 — role 배지와 달리 관계(직원→부서)에서 온다 */}
+                    {user.department && (
+                      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
+                        {user.department.name}
+                        {user.isManager && <Badge variant="info">부서장</Badge>}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <button

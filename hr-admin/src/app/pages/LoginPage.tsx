@@ -83,6 +83,9 @@ export function LoginPage() {
           <p className="mt-0.5">
             일반: <code className="text-slate-700">member@hrcorp.dev / member123</code>
           </p>
+          <p className="mt-0.5">
+            부서장: <code className="text-slate-700">manager@hrcorp.dev / manager123</code>
+          </p>
         </div>
       </div>
     </div>

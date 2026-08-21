@@ -50,6 +50,8 @@ export function renderWithProviders(ui: ReactElement, { initialEntry = '/' } = {
 }
 
 /** UI 로그인 절차 없이 인증 상태를 만드는 빠른 경로 — authDb의 무상태 토큰 형식을 그대로 사용 */
-export function loginAs(role: 'admin' | 'member') {
-  setToken(role === 'admin' ? 'mock-token-u1' : 'mock-token-u2');
+export function loginAs(persona: 'admin' | 'member' | 'manager') {
+  // manager는 role이 아니라 데모 페르소나 — u3(부서장 직원과 연결된 member 계정)
+  const tokens = { admin: 'mock-token-u1', member: 'mock-token-u2', manager: 'mock-token-u3' };
+  setToken(tokens[persona]);
 }
