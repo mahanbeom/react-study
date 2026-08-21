@@ -1,13 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api';
+import { useToast } from '@/ui';
 import { createLeaveRequest, decideLeaveRequest } from './api';
 import { leaveKeys } from './queries';
 
 export function useCreateLeaveRequest() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   return useMutation({
     mutationFn: createLeaveRequest,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: leaveKeys.all }),
+    onSuccess: () => {
+      // 신청 후 목록으로 이동하므로 화면 컨텍스트가 사라진다 — 토스트로 피드백
+      toast.success('휴가를 신청했습니다.');
+      return queryClient.invalidateQueries({ queryKey: leaveKeys.all });
+    },
   });
 }
 
