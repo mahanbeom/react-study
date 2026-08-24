@@ -1,5 +1,7 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { computeLeaveBalance } from '@/features/leave/balance';
+import { listLeaveRequests } from '@/mocks/leaveDb';
 import { loginAs, renderApp } from '@/test/renderWithProviders';
 
 describe('EmployeeDetailPage', () => {
@@ -24,5 +26,17 @@ describe('EmployeeDetailPage', () => {
     expect(await screen.findByRole('button', { name: '목록' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '삭제' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '수정' })).not.toBeInTheDocument();
+  });
+
+  it('올해 연차 현황 카드에 부여/사용/대기/잔여를 보여준다', async () => {
+    loginAs('admin');
+    renderApp('/employees/1');
+
+    // 기대값은 시드 하드코딩 대신 같은 파생 함수로 계산한다
+    const balance = computeLeaveBalance(listLeaveRequests(), '1', new Date().getUTCFullYear());
+    const card = (await screen.findByRole('heading', { name: /년 연차/ })).parentElement!;
+    expect(within(card).getByText(`${balance.granted}일`)).toBeInTheDocument();
+    expect(within(card).getByText(`잔여`)).toBeInTheDocument();
+    expect(within(card).getByText(`${balance.remaining}일`)).toBeInTheDocument();
   });
 });

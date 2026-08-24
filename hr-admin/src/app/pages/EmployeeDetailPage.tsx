@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useAuthUser } from '@/features/auth/auth';
 import { can } from '@/features/auth/permissions';
 import { departmentListQuery } from '@/features/departments/queries';
+import { leaveBalanceQuery } from '@/features/leave/queries';
 import { STATUS_BADGE_VARIANTS, STATUS_LABELS } from '@/features/employees/labels';
 import { useDeleteEmployee } from '@/features/employees/mutations';
 import { employeeDetailQuery } from '@/features/employees/queries';
@@ -15,6 +16,9 @@ export function EmployeeDetailPage() {
   const navigate = useNavigate();
   const query = useQuery(employeeDetailQuery(employeeId!));
   const departmentsQuery = useQuery(departmentListQuery());
+  // 연차 잔여는 저장된 값이 아니라 서버가 신청 목록에서 파생해 내려준다
+  const balanceQuery = useQuery(leaveBalanceQuery(employeeId!, new Date().getUTCFullYear()));
+  const balance = balanceQuery.data;
   const deleteMutation = useDeleteEmployee();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { user } = useAuthUser();
@@ -90,6 +94,21 @@ export function EmployeeDetailPage() {
           ]}
         />
       </div>
+
+      {balance && (
+        <div className="rounded-lg border border-slate-200 bg-white px-6 py-4">
+          <h3 className="text-sm font-semibold text-slate-900">{balance.year}년 연차</h3>
+          <DescriptionList
+            items={[
+              { label: '부여', value: `${balance.granted}일` },
+              { label: '사용', value: `${balance.used}일` },
+              // 대기중 신청도 미리 예약해 두므로 잔여가 음수가 되지 않는다
+              { label: '승인 대기', value: `${balance.reserved}일` },
+              { label: '잔여', value: `${balance.remaining}일` },
+            ]}
+          />
+        </div>
+      )}
 
       <ConfirmDialog
         open={confirmOpen}
