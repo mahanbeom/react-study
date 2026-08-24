@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { employeeListQuery } from '@/features/employees/queries';
+import { exceedsRemaining } from '@/features/leave/balance';
 import { useCreateLeaveRequest } from '@/features/leave/mutations';
 import { LEAVE_TYPE_LABELS } from '@/features/leave/labels';
 import {
@@ -10,6 +11,7 @@ import {
   type LeaveRequestFormInput,
   type LeaveRequestFormValues,
 } from '@/features/leave/schema';
+import { leaveBalanceQuery } from '@/features/leave/queries';
 import { LEAVE_TYPES } from '@/features/leave/types';
 import { Button, FormField, Input, Select, Textarea } from '@/ui';
 
@@ -32,13 +34,33 @@ export function LeaveCreatePage() {
     control,
     handleSubmit,
     setError,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<LeaveRequestFormInput, unknown, LeaveRequestFormValues>({
     resolver: zodResolver(leaveRequestFormSchema),
     defaultValues: BLANK,
   });
 
+  const [employeeId, startDate] = watch(['employeeId', 'startDate']);
+  // 연차는 연 단위로 부여되므로 시작일이 정해지면 그 연도의 잔여를 본다
+  const year = /^\d{4}-/.test(startDate)
+    ? Number(startDate.slice(0, 4))
+    : new Date().getUTCFullYear();
+  const balanceQuery = useQuery({
+    ...leaveBalanceQuery(employeeId, year),
+    enabled: employeeId !== '',
+  });
+  const balance = balanceQuery.data;
+
   async function submit(values: LeaveRequestFormValues) {
+    // 서버와 같은 판정 함수로 미리 막는다 (잔여를 못 받았으면 서버 400이 안전망)
+    if (balance && exceedsRemaining(balance, values)) {
+      setError('endDate', {
+        type: 'validate',
+        message: `잔여 연차(${balance.remaining}일)를 초과합니다`,
+      });
+      return;
+    }
     try {
       await createMutation.mutateAsync(values);
       void navigate('/leave?status=pending');
@@ -93,6 +115,13 @@ export function LeaveCreatePage() {
               />
             </FormField>
           </div>
+
+          {balance && (
+            <p className="text-xs text-slate-500">
+              잔여 연차 {balance.remaining}일 · 사용 {balance.used}일 · 대기 {balance.reserved}일 (
+              {balance.year}년)
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <FormField

@@ -1,5 +1,6 @@
 import { api } from '@/lib/api';
 import type { Paginated } from '@/features/employees/types';
+import type { LeaveBalance } from './balance';
 import type { LeaveRequestFormValues } from './schema';
 import type { LeaveListParams, LeaveRequest } from './types';
 import type { LeaveDecisionAction } from './workflow';
@@ -11,6 +12,11 @@ export function fetchLeaveRequests(params: LeaveListParams = {}): Promise<Pagina
   if (params.status) qs.set('status', params.status);
   const query = qs.toString();
   return api(`/leave-requests${query ? `?${query}` : ''}`);
+}
+
+export function fetchLeaveBalance(employeeId: string, year: number): Promise<LeaveBalance> {
+  const qs = new URLSearchParams({ employeeId, year: String(year) });
+  return api(`/leave-balances?${qs.toString()}`);
 }
 
 export function createLeaveRequest(values: LeaveRequestFormValues): Promise<LeaveRequest> {
