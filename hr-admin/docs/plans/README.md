@@ -14,3 +14,4 @@
 | 7    | [컴포넌트 테스트 도입](7-component-tests.md)                     | `5f23fee`~`e4e9d2e`  |
 | 8    | [심화 패턴: 토스트 + 낙관적 업데이트](8-advanced-patterns.md)    | `38e72a9`~`f54513a`  |
 | 9    | [계정↔직원 연결 + 부서 엔티티](9-account-employee-department.md) | `e92539e`~`1b0cae3`  |
+| 10   | [연차 잔여 관리](10-leave-balance.md)                         | `c4beabc`~`958b8f7`  |
