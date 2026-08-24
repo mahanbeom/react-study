@@ -20,6 +20,14 @@ export const leaveRequestFormSchema = z
         message: '종료일은 시작일 이후여야 합니다',
       });
     }
+    // 반차는 0.5일만 차감하므로 기간이 여러 날이면 차감 규칙과 어긋난다
+    if (v.type === 'half' && v.endDate !== v.startDate) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: '반차는 하루만 신청할 수 있습니다',
+      });
+    }
   });
 
 export type LeaveRequestFormInput = z.input<typeof leaveRequestFormSchema>;
