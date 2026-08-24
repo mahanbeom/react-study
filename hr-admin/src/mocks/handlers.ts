@@ -13,6 +13,7 @@ import {
 } from './db';
 import { leaveRequestFormSchema } from '../features/leave/schema';
 import { LEAVE_STATUSES } from '../features/leave/types';
+import { computeLeaveBalance, exceedsRemaining } from '../features/leave/balance';
 import { decide, type LeaveDecisionAction } from '../features/leave/workflow';
 import { buildMonthlyTrend, countHeadcount } from './dashboard';
 import { queryEmployees } from './employees';
@@ -147,6 +148,18 @@ export const handlers = [
     return HttpResponse.json(updated);
   }),
 
+  http.get('/api/leave-balances', async ({ request }) => {
+    await networkDelay(200);
+    const url = new URL(request.url);
+    const employeeId = url.searchParams.get('employeeId');
+    if (!employeeId || !findEmployee(employeeId)) {
+      return HttpResponse.json({ message: '존재하지 않는 직원입니다' }, { status: 400 });
+    }
+    // 잔여는 저장된 값이 아니라 신청 목록에서 매번 파생한다
+    const year = Number(url.searchParams.get('year')) || new Date().getUTCFullYear();
+    return HttpResponse.json(computeLeaveBalance(listLeaveRequests(), employeeId, year));
+  }),
+
   http.get('/api/leave-requests', async ({ request }) => {
     const url = new URL(request.url);
     await networkDelay(300);
@@ -173,6 +186,12 @@ export const handlers = [
     const employee = findEmployee(parsed.data.employeeId);
     if (!employee) {
       return HttpResponse.json({ message: '존재하지 않는 직원입니다' }, { status: 400 });
+    }
+    // 잔여 초과 검증 — 클라이언트 사전 검증과 같은 판정 함수를 공유하는 안전망
+    const year = Number(parsed.data.startDate.slice(0, 4));
+    const balance = computeLeaveBalance(listLeaveRequests(), parsed.data.employeeId, year);
+    if (exceedsRemaining(balance, parsed.data)) {
+      return HttpResponse.json({ message: '잔여 연차가 부족합니다' }, { status: 400 });
     }
     const today = new Date().toISOString().slice(0, 10);
     return HttpResponse.json(insertLeaveRequest(parsed.data, employee.name, today), {
