@@ -150,6 +150,38 @@ export default function SlicesPattern() {
             (예: <code>[[&quot;zustand/devtools&quot;, never]]</code>).
           </>,
         ]}
+        questions={[
+          {
+            q: 'StateCreator<T, [], [], U> 에서 가운데 [] 두 개는 뭔가?',
+            a: (
+              <>
+                미들웨어 목록이다. 2번은 <b>내가 받는</b> set/get 이 이미 어떤 미들웨어로
+                변형됐는지(Mutators <b>In</b>), 3번은 <b>내가 적용하는</b> 미들웨어가
+                무엇인지(Mutators <b>Out</b>)를 나타낸다. slice 는 미들웨어가 아니라 그냥
+                조각이라 둘 다 비어 있다. 그리고 TypeScript 는 타입 인자를 건너뛸 수 없어서,
+                4번 자리에 도달하려면 2 · 3 번을 <code>[]</code> 로 채워야 한다 — 의미가 있어
+                쓰는 게 아니라 <b>자리 채우기</b>다. 미들웨어를 쓰면 3번이 아니라 <b>2번</b> 이
+                바뀐다 (예: <code>[[&apos;zustand/devtools&apos;, never]]</code>).
+              </>
+            ),
+          },
+          {
+            q: 'fishSlice 는 BearSlice 를 안 쓰는데 왜 T 에 BearSlice & FishSlice 를 넣나?',
+            a: (
+              <>
+                지금 코드만 보면 <b>필요 없다</b>. <code>StateCreator&lt;FishSlice, [], [],
+                FishSlice&gt;</code> 로 좁혀도 컴파일과 합성이 모두 통과한다(함수 인자의
+                반공변성 덕분). 필요해지는 건 <b>남의 slice 를 건드리는 순간</b>이다 — T 를
+                좁힌 채 <code>get().bears</code> 나 <code>set({'{'} bears {'}'})</code> 를 쓰면
+                TS2339 로 막힌다. 게다가 T 를 좁히면 구멍이 하나 생긴다. 좁은 T 에서는{' '}
+                <code>set(전체교체객체, true)</code> 가 통과해버려서, 런타임에 다른 slice 의
+                상태가 통째로 날아간다. T 를 전체로 두면 &quot;완전한 T&quot; 요구 때문에 TS 가
+                이걸 차단한다. 즉 T 는 <b>이 slice 가 실제로 들어가 살 집 전체</b>를 정직하게
+                적는 자리다.
+              </>
+            ),
+          },
+        ]}
       />
     </>
   );
