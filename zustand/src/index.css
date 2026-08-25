@@ -81,3 +81,58 @@ button {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
+
+.notes {
+  margin-top: 2.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.06);
+}
+
+.notes h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.notes h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.notes ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.notes li {
+  margin: 0.35rem 0;
+  font-size: 0.9rem;
+}
+
+.notes details {
+  margin: 0.4rem 0;
+  font-size: 0.9rem;
+}
+
+.notes summary {
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+
+.notes details > div {
+  padding: 0.25rem 0 0.5rem 1rem;
+  border-left: 2px solid rgba(128, 128, 128, 0.35);
+  margin-left: 0.25rem;
+  opacity: 0.9;
+}
+
+.notes code {
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.2);
+  font-size: 0.85em;
+}

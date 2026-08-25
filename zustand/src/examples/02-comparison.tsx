@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import Notes from '../ui/Notes.tsx';
 
 // 공식문서 Getting Started > Comparison
 // "Zustand vs Redux — 상태 모델은 같고, Provider 유무만 다르다"를 코드로 확인한다.
@@ -88,6 +89,27 @@ export default function Comparison() {
       </p>
       <ActionStyle />
       <DispatchStyle />
+
+      <Notes
+        points={[
+          <>
+            zustand 는 아키텍처를 강제하지 않는다. 같은 카운터를 액션 스타일로도,
+            reducer + dispatch 스타일로도 만들 수 있고 둘 다 정상 동작한다.
+          </>,
+          <>
+            Redux 와의 진짜 차이는 상태 모델이 아니라 <b>보일러플레이트와 Provider 유무</b>다.
+            어느 스타일을 쓰든 zustand 는 Provider 가 없다.
+          </>,
+          <>
+            액션 스타일이 기본형이다. dispatch 스타일의 이점은 reducer 가 스토어 밖 순수
+            함수라 단위 테스트가 쉽다는 것.
+          </>,
+          <>
+            Context 와 달리 Provider 가 없으므로, 리렌더 범위를 정하는 건 컴포넌트의 트리
+            위치가 아니라 <b>selector</b> 다.
+          </>,
+        ]}
+      />
     </>
   );
 }
