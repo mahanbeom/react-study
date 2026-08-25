@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import Introduction from './01-introduction.tsx';
 import Comparison from './02-comparison.tsx';
 import UpdatingState from './03-updating-state.tsx';
+import NoStoreActions from './04-no-store-actions.tsx';
 
 export type Example = {
   id: string;
@@ -30,5 +31,11 @@ export const examples: Example[] = [
     title: 'Updating state',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/updating-state.md',
     Component: UpdatingState,
+  },
+  {
+    id: '04-no-store-actions',
+    title: 'Practice with no store actions',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/practice-with-no-store-actions.md',
+    Component: NoStoreActions,
   },
 ];
