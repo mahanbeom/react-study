@@ -4,6 +4,7 @@ import Comparison from './02-comparison.tsx';
 import UpdatingState from './03-updating-state.tsx';
 import NoStoreActions from './04-no-store-actions.tsx';
 import SlicesPattern from './05-slices-pattern/index.tsx';
+import ImmutableMerging from './06-immutable-merging.tsx';
 
 export type Example = {
   id: string;
@@ -44,5 +45,11 @@ export const examples: Example[] = [
     title: 'Slices pattern',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/slices-pattern.md',
     Component: SlicesPattern,
+  },
+  {
+    id: '06-immutable-merging',
+    title: 'Immutable state and merging',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/immutable-state-and-merging.md',
+    Component: ImmutableMerging,
   },
 ];
