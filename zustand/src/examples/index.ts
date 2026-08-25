@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import Introduction from './01-introduction.tsx';
 import Comparison from './02-comparison.tsx';
+import UpdatingState from './03-updating-state.tsx';
 
 export type Example = {
   id: string;
@@ -23,5 +24,11 @@ export const examples: Example[] = [
     title: 'Comparison',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/getting-started/comparison.md',
     Component: Comparison,
+  },
+  {
+    id: '03-updating-state',
+    title: 'Updating state',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/updating-state.md',
+    Component: UpdatingState,
   },
 ];

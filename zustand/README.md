@@ -30,7 +30,7 @@ pnpm typecheck  # 타입 검사
 
 ### Learn — Core concepts
 
-- [ ] Updating state
+- [x] Updating state
 - [ ] Practice with no store actions
 - [ ] Slices pattern
 - [ ] Immutable state and merging
