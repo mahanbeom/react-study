@@ -5,6 +5,7 @@ import UpdatingState from './03-updating-state.tsx';
 import NoStoreActions from './04-no-store-actions.tsx';
 import SlicesPattern from './05-slices-pattern/index.tsx';
 import ImmutableMerging from './06-immutable-merging.tsx';
+import MapsAndSets from './07-maps-and-sets.tsx';
 
 export type Example = {
   id: string;
@@ -51,5 +52,11 @@ export const examples: Example[] = [
     title: 'Immutable state and merging',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/immutable-state-and-merging.md',
     Component: ImmutableMerging,
+  },
+  {
+    id: '07-maps-and-sets',
+    title: 'Maps and sets usage',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/maps-and-sets-usage.md',
+    Component: MapsAndSets,
   },
 ];

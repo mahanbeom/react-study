@@ -35,7 +35,7 @@ pnpm typecheck  # 타입 검사
 - [x] Practice with no store actions
 - [x] Slices pattern
 - [x] Immutable state and merging
-- [ ] Maps and sets usage
+- [x] Maps and sets usage
 
 ### Learn — Performance and rendering
 
