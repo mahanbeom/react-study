@@ -3,6 +3,7 @@ import Introduction from './01-introduction.tsx';
 import Comparison from './02-comparison.tsx';
 import UpdatingState from './03-updating-state.tsx';
 import NoStoreActions from './04-no-store-actions.tsx';
+import SlicesPattern from './05-slices-pattern/index.tsx';
 
 export type Example = {
   id: string;
@@ -37,5 +38,11 @@ export const examples: Example[] = [
     title: 'Practice with no store actions',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/practice-with-no-store-actions.md',
     Component: NoStoreActions,
+  },
+  {
+    id: '05-slices-pattern',
+    title: 'Slices pattern',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/slices-pattern.md',
+    Component: SlicesPattern,
   },
 ];

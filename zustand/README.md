@@ -14,6 +14,7 @@ pnpm typecheck  # 타입 검사
 ## 구조
 
 - `src/examples/NN-*.tsx` — 문서 한 꼭지당 예제 파일 하나
+  (파일 분리 자체가 주제인 경우 `NN-*/` 디렉터리)
 - `src/examples/index.ts` — 예제 목록(공식문서 순서대로 추가)
 - `src/App.tsx` — 왼쪽 목록에서 예제를 골라 보는 셸
 
@@ -32,7 +33,7 @@ pnpm typecheck  # 타입 검사
 
 - [x] Updating state
 - [x] Practice with no store actions
-- [ ] Slices pattern
+- [x] Slices pattern
 - [ ] Immutable state and merging
 - [ ] Maps and sets usage
 
