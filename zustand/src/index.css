@@ -1,0 +1,83 @@
+:root {
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.layout nav {
+  flex: 0 0 260px;
+  padding: 1.5rem 1rem;
+  border-right: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.layout nav ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.layout nav button {
+  border: none;
+  padding: 0.2rem 0;
+  text-align: left;
+}
+
+.layout nav button[aria-current='true'] {
+  font-weight: 700;
+}
+
+.layout main {
+  flex: 1;
+  padding: 1.5rem 2rem;
+}
+
+.layout main a {
+  font-size: 0.85rem;
+}
+
+.layout nav ul {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.panel {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 8px;
+}
+
+.panel .note {
+  margin: 0.3rem 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.panel .renders {
+  margin: 0.3rem 0 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}

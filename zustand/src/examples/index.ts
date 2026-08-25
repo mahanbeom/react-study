@@ -1,0 +1,27 @@
+import type { ComponentType } from 'react';
+import Introduction from './01-introduction.tsx';
+import Comparison from './02-comparison.tsx';
+
+export type Example = {
+  id: string;
+  title: string;
+  /** 공식문서 원문 링크 */
+  docs: string;
+  Component: ComponentType;
+};
+
+// 공식문서에 나오는 순서대로 하나씩 추가한다
+export const examples: Example[] = [
+  {
+    id: '01-introduction',
+    title: 'Introduction',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/getting-started/introduction.md',
+    Component: Introduction,
+  },
+  {
+    id: '02-comparison',
+    title: 'Comparison',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/getting-started/comparison.md',
+    Component: Comparison,
+  },
+];
