@@ -1,138 +1,192 @@
-:root {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
-  color-scheme: light dark;
+@import "tailwindcss";
+
+/*
+ * Tailwind v4 는 preflight(기본 리셋)를 @layer base 에 넣는다.
+ * 레이어 없는 CSS 는 레이어 있는 CSS 를 항상 이기므로, 여기 규칙들을 그냥 두면
+ * Tailwind 유틸리티(@layer utilities)를 덮어써서 className 이 안 먹는 것처럼 보인다.
+ * 그래서 기존 스타일을 base / components 레이어에 넣어 유틸리티가 항상 이기게 한다.
+ *
+ *   우선순위:  base  <  components  <  utilities  <  레이어 없는 CSS
+ */
+
+@layer base {
+  :root {
+    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+    color-scheme: light dark;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  /* preflight 가 지운 브라우저 기본값을 되살린다 (예제 01~07 이 이것에 기대고 있다) */
+  h1 {
+    margin: 0.67em 0;
+    font-size: 2em;
+    font-weight: 700;
+  }
+
+  h2 {
+    margin: 0.83em 0;
+    font-size: 1.5em;
+    font-weight: 700;
+  }
+
+  h3 {
+    margin: 1em 0;
+    font-size: 1.17em;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 1em 0;
+  }
+
+  ol {
+    list-style: decimal;
+    margin: 1em 0;
+    padding-left: 2.5rem;
+  }
+
+  ul {
+    list-style: disc;
+    margin: 1em 0;
+    padding-left: 2.5rem;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  button {
+    font: inherit;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
 }
 
-body {
-  margin: 0;
-}
+@layer components {
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
 
-button {
-  font: inherit;
-  padding: 0.4rem 0.9rem;
-  border: 1px solid currentColor;
-  border-radius: 6px;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
+  .layout nav {
+    flex: 0 0 260px;
+    padding: 1.5rem 1rem;
+    border-right: 1px solid rgba(128, 128, 128, 0.3);
+  }
 
-.layout {
-  display: flex;
-  min-height: 100vh;
-}
+  .layout nav ol {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
 
-.layout nav {
-  flex: 0 0 260px;
-  padding: 1.5rem 1rem;
-  border-right: 1px solid rgba(128, 128, 128, 0.3);
-}
+  .layout nav button {
+    border: none;
+    padding: 0.2rem 0;
+    text-align: left;
+  }
 
-.layout nav ol {
-  margin: 0;
-  padding-left: 1.2rem;
-}
+  .layout nav button[aria-current='true'] {
+    font-weight: 700;
+  }
 
-.layout nav button {
-  border: none;
-  padding: 0.2rem 0;
-  text-align: left;
-}
+  .layout main {
+    flex: 1;
+    padding: 1.5rem 2rem;
+  }
 
-.layout nav button[aria-current='true'] {
-  font-weight: 700;
-}
+  .layout main a {
+    font-size: 0.85rem;
+  }
 
-.layout main {
-  flex: 1;
-  padding: 1.5rem 2rem;
-}
+  .layout nav ul {
+    margin: 0 0 1rem;
+    padding-left: 1.2rem;
+  }
 
-.layout main a {
-  font-size: 0.85rem;
-}
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
 
-.layout nav ul {
-  margin: 0 0 1rem;
-  padding-left: 1.2rem;
-}
+  .panel {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(128, 128, 128, 0.4);
+    border-radius: 8px;
+  }
 
-.panels {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.75rem;
-}
+  .panel .note {
+    margin: 0.3rem 0;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
 
-.panel {
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(128, 128, 128, 0.4);
-  border-radius: 8px;
-}
+  .panel .renders {
+    margin: 0.3rem 0 0;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
 
-.panel .note {
-  margin: 0.3rem 0;
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
+  .notes {
+    margin-top: 2.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(128, 128, 128, 0.4);
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: rgba(128, 128, 128, 0.06);
+  }
 
-.panel .renders {
-  margin: 0.3rem 0 0;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
+  .notes h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+  }
 
-.notes {
-  margin-top: 2.5rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid rgba(128, 128, 128, 0.4);
-  border-left-width: 4px;
-  border-radius: 8px;
-  background: rgba(128, 128, 128, 0.06);
-}
+  .notes h3 {
+    margin: 1.25rem 0 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
 
-.notes h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-  letter-spacing: 0.02em;
-}
+  .notes ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
 
-.notes h3 {
-  margin: 1.25rem 0 0.5rem;
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
+  .notes li {
+    margin: 0.35rem 0;
+    font-size: 0.9rem;
+  }
 
-.notes ul {
-  margin: 0;
-  padding-left: 1.2rem;
-}
+  .notes details {
+    margin: 0.4rem 0;
+    font-size: 0.9rem;
+  }
 
-.notes li {
-  margin: 0.35rem 0;
-  font-size: 0.9rem;
-}
+  .notes summary {
+    cursor: pointer;
+    padding: 0.25rem 0;
+  }
 
-.notes details {
-  margin: 0.4rem 0;
-  font-size: 0.9rem;
-}
+  .notes details > div {
+    padding: 0.25rem 0 0.5rem 1rem;
+    border-left: 2px solid rgba(128, 128, 128, 0.35);
+    margin-left: 0.25rem;
+    opacity: 0.9;
+  }
 
-.notes summary {
-  cursor: pointer;
-  padding: 0.25rem 0;
-}
-
-.notes details > div {
-  padding: 0.25rem 0 0.5rem 1rem;
-  border-left: 2px solid rgba(128, 128, 128, 0.35);
-  margin-left: 0.25rem;
-  opacity: 0.9;
-}
-
-.notes code {
-  padding: 0.05rem 0.3rem;
-  border-radius: 4px;
-  background: rgba(128, 128, 128, 0.2);
-  font-size: 0.85em;
+  .notes code {
+    padding: 0.05rem 0.3rem;
+    border-radius: 4px;
+    background: rgba(128, 128, 128, 0.2);
+    font-size: 0.85em;
+  }
 }
