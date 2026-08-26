@@ -27,7 +27,7 @@ pnpm typecheck  # 타입 검사
 
 - [x] Introduction
 - [x] Comparison with other tools
-- [ ] Tutorial: Tic Tac Toe
+- [x] Tutorial: Tic Tac Toe
 
 ### Learn — Core concepts
 
