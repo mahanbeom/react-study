@@ -6,6 +6,7 @@ import NoStoreActions from './04-no-store-actions.tsx';
 import SlicesPattern from './05-slices-pattern/index.tsx';
 import ImmutableMerging from './06-immutable-merging.tsx';
 import MapsAndSets from './07-maps-and-sets.tsx';
+import TicTacToe from './08-tic-tac-toe/index.tsx';
 
 export type Example = {
   id: string;
@@ -58,5 +59,11 @@ export const examples: Example[] = [
     title: 'Maps and sets usage',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/maps-and-sets-usage.md',
     Component: MapsAndSets,
+  },
+  {
+    id: '08-tic-tac-toe',
+    title: 'Tutorial: Tic Tac Toe',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/tutorial-tic-tac-toe.md',
+    Component: TicTacToe,
   },
 ];
