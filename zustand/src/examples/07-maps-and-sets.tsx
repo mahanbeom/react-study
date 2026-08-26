@@ -100,6 +100,11 @@ function SetControls() {
   const mutateTag = useCollectionStore((state) => state.mutateTag);
   const [probe, setProbe] = useState('');
 
+  const handleViewStore = () => {
+    console.log(JSON.stringify([...useCollectionStore.getState().tags][0]));
+    console.log(JSON.stringify([...useCollectionStore.getState().users][0][0]));
+  }
+
   const peek = () => {
     const { tags } = useCollectionStore.getState();
     setProbe(`알림 ${notifyCount}회 / 실제 size ${tags.size} / [${[...tags].join(', ')}]`);
@@ -111,6 +116,7 @@ function SetControls() {
         <button onClick={() => toggleTag('vite')}>정석 토글: vite</button>{' '}
         <button onClick={() => mutateTag('mutated')}>안티패턴 추가: mutated</button>{' '}
         <button onClick={peek}>실제 상태 들여다보기</button>
+        <button onClick={handleViewStore}>보기</button>
       </p>
       {probe && (
         <p>
@@ -224,6 +230,52 @@ export default function MapsAndSets() {
           </>,
         ]}
         questions={[
+          {
+            q: 'Set 과 Map 은 각각 어떤 자료구조이고, 왜 tags 는 Set / users 는 Map 인가?',
+            a: (
+              <>
+                <b>Set</b> 은 중복 없는 값의 모음이고 핵심 연산은 <code>has</code> 다.{' '}
+                <b>Map</b> 은 키→값 대응표이고 핵심 연산은 <code>get</code> 이다. 둘 다 조회가{' '}
+                <code>O(1)</code> 이라, 배열의 <code>includes</code>(<code>O(n)</code>)와
+                갈린다.
+                <br />
+                <br />
+                <code>tags</code> 는 값 자체가 전부다. <code>&apos;react&apos;</code> 에 딸린
+                부가 정보가 없고, 궁금한 건 &quot;붙어 있나 없나&quot; 하나뿐이며, 같은 태그가
+                두 번 붙는 건 의미가 없다 → Set. <code>users</code> 는 <code>&apos;u1&apos;</code>{' '}
+                이라는 <b>열쇠</b>로 <code>&apos;김철수&apos;</code> 라는 <b>내용</b>을 찾는다.
+                이름은 동명이인으로 중복될 수도 있다 → Map.
+                <br />
+                <br />
+                한 줄 기준: <b>&quot;이거 있어?&quot;만 물으면 Set, &quot;이거로 뭘
+                찾아줘&quot;면 Map.</b>
+              </>
+            ),
+          },
+          {
+            q: 'Map/Set 대신 객체·배열을 쓰면 안 되나?',
+            a: (
+              <>
+                되지만 객체에는 함정이 셋 있다(실측). ① 정수처럼 생긴 키는 <b>순서가
+                재정렬</b>된다 — <code>10, 2, b, a</code> 로 넣으면{' '}
+                <code>[&apos;2&apos;, &apos;10&apos;, &apos;b&apos;, &apos;a&apos;]</code> 가
+                된다. Map 은 넣은 순서를 지킨다. ② 키가 <b>문자열로 강제 변환</b>된다 — 객체를
+                키로 쓰면 전부 <code>&apos;[object Object]&apos;</code> 가 되어 서로 덮어쓴다.
+                ③ <code>o[&apos;toString&apos;]</code> 처럼 <b>상속된 키</b>가 이미 존재한다.
+                <br />
+                <br />
+                <b>반대로 Set/Map 의 큰 약점은 직렬화다.</b>{' '}
+                <code>JSON.stringify(new Set([...]))</code> 는{' '}
+                <code>{'{}'}</code> 를 뱉는다. <code>persist</code> 미들웨어가 localStorage 에
+                쓸 때 바로 이 <code>JSON.stringify</code> 를 쓰므로, Set/Map 상태에 persist 를
+                그냥 붙이면 내용이 통째로 비어버린다. 직렬화를 직접 지정해야 한다.
+                <br />
+                <br />
+                판단: 항목이 수백 개 이하면 배열·객체가 무난하고, 조회가 잦고 규모가 크면
+                Set/Map 이 유리하다. persist 계획이 있으면 그 비용도 계산에 넣는다.
+              </>
+            ),
+          },
           {
             q: '빈 Set/Map 타입 힌트가 정말 필요한가?',
             a: (
