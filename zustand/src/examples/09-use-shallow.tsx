@@ -69,8 +69,12 @@ function NamesWithShallow() {
   );
 }
 
-// 조작부는 표시부와 형제로 둔다. 자식으로 두면 조작부의 상태 변경만으로
-// 표시부까지 리렌더되어 계측이 오염된다. (03 · 07 에서 두 번 겪은 함정)
+// 조작부를 따로 뺐지만, 이 경우엔 표시부와 합쳐도 결과가 같다.
+// 계측이 오염되는 조건은 조작부가 "스스로 리렌더를 일으킬 수 있을 때" 다 —
+// 로컬 state(useState)를 갖거나, 변하는 값을 구독할 때. 03 · 07 의 조작부에는
+// "들여다보기" 버튼의 useState 가 있었고 그래서 분리가 필수였다.
+// 여기 MealControls 는 훅을 하나도 부르지 않는다. setState 는 훅이 아니라
+// 스토어 API 직접 호출이라 구독을 만들지 않는다.
 function MealControls() {
   return (
     <p>
@@ -157,7 +161,7 @@ function ItemList() {
   // TODO ① — 지금은 items 를 그대로 뽑고 있다.
   //   "배열 복사" 를 누르면 원소는 그대로인데 참조가 바뀌어 리렌더가 일어난다.
   //   이 줄을 useShallow 로 감싸서, 내용이 같으면 리렌더되지 않게 만들어라.
-  const items = useItemStore((state) => state.items);
+  const items = useItemStore(useShallow((state) => state.items));
 
   const renders = useRef(0);
   renders.current += 1;
@@ -173,9 +177,9 @@ function ItemSummary() {
   // TODO ② — 지금까지는 "selector 를 한 줄에 하나씩" 쓰라는 제약이 있었다.
   //   새 객체를 반환하면 무한 루프가 났기 때문이다. useShallow 가 그 제약을 푼다.
   //   아래 두 줄을 { count, first } 를 한 번에 반환하는 selector 한 줄로 합쳐라.
-  const count = useItemStore((state) => state.items.length);
-  const first = useItemStore((state) => state.items[0]);
-
+  const { count, first } = useItemStore(
+    useShallow((state) => ({ count: state.items.length, first: state.items[0] })),
+  );
   const renders = useRef(0);
   renders.current += 1;
 
@@ -249,7 +253,7 @@ function TagList() {
   // TODO ③ — Set 도 마찬가지다. "Set 복사" 를 누르면 내용은 같은데 리렌더가 난다.
   //   useShallow 로 감싸면 어떻게 되는지 확인해라.
   //   (07 에서 미뤄둔 숙제다 — v5 의 shallow 가 Map/Set 을 어떻게 다루는지는 아래 표에 있다)
-  const tags = useTagStore((state) => state.tags);
+  const tags = useTagStore(useShallow((state) => state.tags));
 
   const renders = useRef(0);
   renders.current += 1;
@@ -415,6 +419,80 @@ export default function UseShallow() {
             selector 자체는 여전히 매번 실행된다. 비싼 계산이면 selector 밖에서 메모이제이션을 따로
             해야 한다.
           </>,
+        ]}
+        questions={[
+          {
+            q: '조작부를 표시부와 꼭 형제로 분리해야 하나? 합쳐도 렌더 횟수가 같던데.',
+            a: (
+              <>
+                이 예제에서는 합쳐도 같다. 오염되는 조건은 조작부가{' '}
+                <b>스스로 리렌더를 일으킬 수 있을 때</b> 다 — <code>useState</code> 로 로컬 상태를
+                갖거나, 변하는 값을 구독할 때. 03 의 <code>DeepControls</code> 와 07 의{' '}
+                <code>SetControls</code> 에는 &quot;들여다보기&quot; 버튼의 <code>useState</code> 가
+                있었고, 합쳐두면 그 클릭만으로 표시부가 리렌더되어 mutation 으로 몰래 바뀐 값이
+                화면에 튀어나온다.
+                <br />
+                <br />
+                여기 <code>MealControls</code> 는 훅을 하나도 부르지 않는다.{' '}
+                <code>useMeals.setState</code> 는 이름에 use 가 붙었지만 훅이 아니라 스토어 API 직접
+                호출이라 구독을 만들지 않는다. 리렌더를 일으킬 재료가 없으니 분리가 무의미하다.
+                <br />
+                <br />
+                요점은 리렌더 자체가 아니라 <b>원인 귀속</b>이다. 부모가 리렌더되면 자식은 props 가
+                같아도 따라 리렌더되므로, 카운터가 올랐을 때 &quot;스토어 때문&quot; 인지 &quot;부모
+                때문&quot;인지 구별할 수 없게 된다.
+              </>
+            ),
+          },
+          {
+            q: 'Object.keys 대신 Object.values 로 바꿨더니 useShallow 를 붙였는데도 리렌더된다.',
+            a: (
+              <>
+                그게 맞는 동작이다. papaBear 가 <code>&apos;large porridge-pot&apos;</code> 에서{' '}
+                <code>&apos;a large pizza&apos;</code> 로 바뀌면 <code>Object.values</code> 가 뽑는
+                배열의 <b>내용이 실제로 달라진다</b>. 얕은 비교가 정직하게 false 를 내놓은 것이다.
+                <br />
+                <br />
+                <code>useShallow</code> 는 <b>&quot;참조는 새것, 내용은 같음&quot;</b> 인 경우에만
+                리렌더를 막는다. <code>Object.keys</code> 는 papaBear 의 값이 뭐로 바뀌든{' '}
+                <code>[&apos;papaBear&apos;, &apos;mamaBear&apos;, &apos;littleBear&apos;]</code> 로
+                내용이 고정이라 그 조건에 맞고, <code>Object.values</code> 는 안 맞는다.
+              </>
+            ),
+          },
+          {
+            q: '실무에서 액션도 useShallow 로 묶어 한 줄로 선언하나?',
+            a: (
+              <>
+                아니다. 액션 참조는 재생성되지 않으므로 <code>Object.is</code> 만으로 충분한데,{' '}
+                <code>useShallow</code> 를 씌우면 <b>막을 리렌더가 없는데 비용만</b> 붙는다. 매
+                렌더마다 새 객체를 만들고 얕은 비교를 돌린다. 게다가 <code>useShallow</code> 자체가
+                렌더마다 <b>새 selector 함수</b>를 반환하므로 <code>useStore</code> 내부의{' '}
+                <code>useCallback</code> 의존성도 매번 바뀐다.
+                <br />
+                <br />
+                실무에서 흔한 방향은 둘이다. ① <b>actions 네임스페이스</b> — 액션을 스토어 안{' '}
+                <code>actions</code> 객체 하나로 묶고 <code>useStore((s) =&gt; s.actions)</code> 로
+                뽑는다. 그 객체는 initializer 가 한 번 만든 뒤 교체되지 않으므로 참조가 고정이고,
+                그래서 <code>useShallow</code> 없이 구조분해해도 된다. ② <b>모듈 레벨 액션</b> — 04
+                에서 한 것처럼 액션을 스토어 밖으로 빼면 컴포넌트에 훅 호출 자체가 사라진다.
+                <br />
+                <br />
+                다만 ① 은 04 에서 실측한 함정을 그대로 물려받는다. <code>
+                  setState(next, true)
+                </code>{' '}
+                로 replace 하면 <code>actions</code> 객체가 통째로 날아간다.
+                <br />
+                <br />
+                기준 한 줄:{' '}
+                <b>
+                  useShallow 는 &quot;참조가 매번 새로 생기는데 내용은 같을 수 있는&quot; 값에만
+                  쓴다.
+                </b>{' '}
+                액션은 참조가 처음부터 고정이라 대상이 아니다.
+              </>
+            ),
+          },
         ]}
       />
     </>

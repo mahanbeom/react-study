@@ -39,7 +39,7 @@ pnpm typecheck  # 타입 검사
 
 ### Learn — Performance and rendering
 
-- [ ] Prevent rerenders with useShallow
+- [x] Prevent rerenders with useShallow
 - [ ] Connect to state with URL hash
 - [ ] Event handler in pre React 18
 
