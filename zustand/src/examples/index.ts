@@ -7,6 +7,7 @@ import SlicesPattern from './05-slices-pattern/index.tsx';
 import ImmutableMerging from './06-immutable-merging.tsx';
 import MapsAndSets from './07-maps-and-sets.tsx';
 import TicTacToe from './08-tic-tac-toe/index.tsx';
+import UseShallow from './09-use-shallow.tsx';
 
 export type Example = {
   id: string;
@@ -65,5 +66,11 @@ export const examples: Example[] = [
     title: 'Tutorial: Tic Tac Toe',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/tutorial-tic-tac-toe.md',
     Component: TicTacToe,
+  },
+  {
+    id: '09-use-shallow',
+    title: 'Prevent rerenders with useShallow',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/prevent-rerenders-with-use-shallow.md',
+    Component: UseShallow,
   },
 ];
