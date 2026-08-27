@@ -8,6 +8,7 @@ import ImmutableMerging from './06-immutable-merging.tsx';
 import MapsAndSets from './07-maps-and-sets.tsx';
 import TicTacToe from './08-tic-tac-toe/index.tsx';
 import UseShallow from './09-use-shallow.tsx';
+import UrlHash from './10-url-hash.tsx';
 
 export type Example = {
   id: string;
@@ -72,5 +73,11 @@ export const examples: Example[] = [
     title: 'Prevent rerenders with useShallow',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/prevent-rerenders-with-use-shallow.md',
     Component: UseShallow,
+  },
+  {
+    id: '10-url-hash',
+    title: 'Connect to state with URL hash',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/connect-to-state-with-url-hash.md',
+    Component: UrlHash,
   },
 ];
