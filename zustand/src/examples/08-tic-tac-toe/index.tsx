@@ -114,10 +114,9 @@ function useRenderCount() {
 const SQUARE_INDEXES = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
 function Square({ index }: { index: number }) {
-  // TODO — 지금은 보드 배열 전체를 구독한다. 그래서 어느 칸을 눌러도 9칸이 전부 리렌더된다.
-  //   이 칸의 값 하나만 뽑도록 고쳐라. 아래 isWinning 이 참고할 만한 예다.
-  const board = useGameStore((state) => state.history[state.currentTurn]);
-  const value = board[index];
+  // 이 칸 하나만 구독한다. 반환값이 'X' | 'O' | null 이라 Object.is 로 정확히 비교된다.
+  // useShallow 는 필요 없다 — shallow 의 첫 줄이 Object.is 이고, 원시값은 거기서 끝난다.
+  const value = useGameStore((state) => state.history[state.currentTurn][index]);
 
   // 파생 boolean 을 뽑는 selector. 결과가 boolean 이라 Object.is 로 충분하다 —
   // 승부가 나는 순간 이 3칸만 false → true 로 바뀌고, 나머지 6칸은 리렌더되지 않는다.
@@ -290,6 +289,52 @@ export default function TicTacToe() {
                 <code>&apos;Draw&apos;</code> 를 승자 이름으로 오해한다. 반환 타입이{' '}
                 <code>Square</code> 가 못 되고 <code>string | null</code> 로 넓어진 것도 그
                 신호였다. <b>승자 판정</b>과 <b>화면 문구</b>를 두 함수로 분리했다.
+              </>
+            ),
+          },
+          {
+            q: '칸마다 selector 를 나누면 정말 그 칸만 리렌더되나?',
+            a: (
+              <>
+                된다. 다만 <b>구독을 나누는 것만으로는 부족하다</b>. 부모가 리렌더되면 자식은 props
+                가 같아도 따라 리렌더되기 때문이다(<code>React.memo</code> 가 없는 한). 그래서
+                최상위와 <code>Board</code> 가 <b>아무것도 구독하지 않게</b> 만드는 것이 전제
+                조건이다. 03 · 07 의 &quot;조작부와 표시부를 형제로 두라&quot; 를 트리 전체로 확장한
+                셈이다.
+                <br />
+                <br />
+                실측(StrictMode 라 2씩 오른다). 빈 칸 하나를 놓았을 때 — 누른 칸만 2→4, 나머지 8칸은
+                2 그대로. <code>Board</code> 와 최상위도 2 그대로. 고치기 전(보드 전체를 구독)에는
+                9칸이 전부 4였다.
+                <br />
+                <br />
+                승부가 나는 수를 놓았을 때 — 승리 3칸만 추가로 렌더되고(값 또는{' '}
+                <code>isWinning</code> 이 바뀌어서) 나머지는 미동도 없다.
+                <br />
+                <br />
+                주의: 리렌더가 걸러지는 것이지 <b>selector 실행이 걸러지는 게 아니다</b>. 스토어가
+                바뀌면 9칸의 selector 가 모두 실행되고, 결과가 달라진 칸만 리렌더된다.
+              </>
+            ),
+          },
+          {
+            q: '칸의 값을 뽑는 selector 에 useShallow 를 씌우면?',
+            a: (
+              <>
+                동작은 하지만 하는 일이 없다. 반환값이{' '}
+                <code>&apos;X&apos; | &apos;O&apos; | null</code> — 원시값이라{' '}
+                <code>Object.is</code> 만으로 정확히 비교된다.
+                <br />
+                <br />
+                <code>shallow</code> 소스의 첫 줄이 <code>if (Object.is(a, b)) return true</code>{' '}
+                다. 원시값은 거기서 끝나고 나머지 로직에 도달하지도 않는다. 그러면서{' '}
+                <code>useShallow</code> 가 매 렌더마다 새 selector 함수를 만드는 비용만 붙는다.
+                <br />
+                <br />
+                바로 아래 <code>isWinning</code> 이 대비된다 — selector 안에서{' '}
+                <code>calculateWinningLine</code> 을 부르는 진짜 계산을 하는데도{' '}
+                <code>useShallow</code> 가 없다. 결과가 boolean 이기 때문이다. 기준은 계산의 유무가
+                아니라 <b>반환값이 매번 새 참조인가</b> 다.
               </>
             ),
           },
