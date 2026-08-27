@@ -41,7 +41,7 @@ pnpm typecheck  # 타입 검사
 
 - [x] Prevent rerenders with useShallow
 - [x] Connect to state with URL hash
-- [ ] Event handler in pre React 18
+- [x] Event handler in pre React 18 — 개념만 정리 (v5는 React 18+ 전용이라 재현 불가, 예제 없음)
 
 ### Learn — TypeScript path
 
