@@ -40,7 +40,7 @@ pnpm typecheck  # 타입 검사
 ### Learn — Performance and rendering
 
 - [x] Prevent rerenders with useShallow
-- [ ] Connect to state with URL hash
+- [x] Connect to state with URL hash
 - [ ] Event handler in pre React 18
 
 ### Learn — TypeScript path

@@ -133,11 +133,11 @@ function DocPanel() {
 const hashStorage: StateStorage = {
   getItem: (key) => {
     const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    return JSON.parse(searchParams.get(key) ?? '');
+    return searchParams.get(key) ?? null;
   },
   setItem: (key, newValue) => {
     const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    searchParams.set(key, JSON.stringify(newValue));
+    searchParams.set(key, newValue);
     window.location.hash = searchParams.toString();
   },
   removeItem: (key) => {
@@ -166,6 +166,7 @@ const useZooStore = create<ZooStore>()(
     {
       name: 'zoo-storage',
       storage: createJSONStorage(() => hashStorage),
+      partialize: (state) => ({ bears: state.bears }),
       // TODO ② — 지금은 상태 전체가 URL 에 실린다. draftNote 는 빼라.
       //   persist 옵션 하나면 된다. 기본값은 (state) => state 다.
     },
@@ -214,28 +215,42 @@ type TagStore = {
 };
 
 /**
- * 저장소에서 {} 로 돌아온 값까지 견디게 하는 임시 방어막.
- * TODO ③ 을 고치면 tags 는 항상 Set 이므로 이 함수는 지워도 된다.
- * (없으면 새로고침 직후 [...tags] 가 "tags is not iterable" 로 페이지를 통째로 죽인다)
+ * 저장소에 남아 있는 "옛 형식" 데이터를 견디게 한다.
+ * 아래 replacer/reviver 를 붙이기 전에 저장된 해시에는 tags 가 {} 로 들어 있고,
+ * 그대로 [...tags] 하면 "tags is not iterable" 로 페이지가 통째로 죽는다.
+ * 저장 형식을 바꾸면 옛 데이터가 남는다는 문제는 실서비스에서도 그대로다 —
+ * zustand 가 준비한 정공법은 version + migrate 다.
  */
 const asSet = (value: unknown): Set<string> =>
   value instanceof Set ? (value as Set<string>) : new Set<string>();
+
+/** JSON 에는 타입 정보가 없으니, 저장할 때 "이건 원래 Set 이었다" 는 표식을 같이 넣는다 */
+type SerializedSet = { __type: 'Set'; value: string[] };
+
+const isSerializedSet = (value: unknown): value is SerializedSet =>
+  typeof value === 'object' &&
+  value !== null &&
+  '__type' in value &&
+  (value as { __type: unknown }).__type === 'Set';
 
 const useTagStore = create<TagStore>()(
   persist(
     (set) => ({
       tags: new Set<string>(),
-      addTag: (tag) => set((state) => ({ tags: asSet(state.tags).add(tag) })),
+      // 복사본을 만들어야 참조가 바뀐다. asSet 은 Set 이면 원본을 그대로 돌려주므로
+      // asSet(...).add(tag) 로 쓰면 07 의 mutation 함정에 그대로 빠진다.
+      addTag: (tag) => set((state) => ({ tags: new Set(asSet(state.tags)).add(tag) })),
     }),
     {
       name: 'tag-storage',
-      // TODO ③ — 07 에서 남긴 숙제다. JSON.stringify(new Set(['a'])) 는 {} 를 뱉는다.
-      //   지금 상태로 태그를 추가하고 해시를 보면 tags 가 {} 로 비어 있고,
-      //   새로고침하면 태그가 사라진다.
-      //   createJSONStorage 는 두 번째 인자로 { replacer, reviver } 를 받는다
-      //   (JSON.stringify / JSON.parse 에 그대로 넘어가는 그 콜백이다).
-      //   Set 을 저장 가능한 모양으로 바꿨다가 되돌려라.
-      storage: createJSONStorage(() => hashStorage),
+      // replacer / reviver 는 createJSONStorage 가 JSON.stringify / JSON.parse 에
+      // 그대로 넘겨주는 콜백이다. 둘 다 "모든 키/값마다" 불리므로 조건이 반드시 필요하다.
+      // 조건 없이 감싸면 version 도 숫자도 감싸고, 감싼 결과에 또 replacer 가 걸려 끝없이 중첩된다.
+      storage: createJSONStorage(() => hashStorage, {
+        replacer: (_key, value) =>
+          value instanceof Set ? { __type: 'Set', value: [...value] } : value,
+        reviver: (_key, value) => (isSerializedSet(value) ? new Set(value.value) : value),
+      }),
     },
   ),
 );
@@ -326,6 +341,106 @@ export default function UrlHash() {
             (민감한 값 금지), 그리고 <code>location.hash =</code> 는 히스토리에 항목을 쌓는다
             (뒤로가기가 지저분해진다. <code>history.replaceState</code> 를 쓰면 피할 수 있다).
           </>,
+        ]}
+        questions={[
+          {
+            q: 'docHashStorage.getItem / setItem 을 부르는 코드가 어디에도 없는데 어떻게 실행되나?',
+            a: (
+              <>
+                우리는 <b>호출한 게 아니라 넘겨줬다</b>.{' '}
+                <code>storage: createJSONStorage(() =&gt; docHashStorage)</code> 한 줄로 객체를
+                건넸고, 부르는 쪽은 <code>persist</code> 내부다.
+                <br />
+                <br />
+                방아쇠는 <code>set</code> 이다. <code>persist</code> 는 initializer 를 실행할 때
+                진짜 <code>set</code> 대신{' '}
+                <code>
+                  (...args) =&gt; {'{'} set(...args); setItem(); {'}'}
+                </code>{' '}
+                를 넘긴다. 그래서 <code>addAFish</code> 가 붙잡은 <code>set</code> 은 처음부터
+                persist 버전이고, 우리 코드는 그대로인데 저장이 따라붙는다.
+                <br />
+                <br />
+                호출 순서: <code>addAFish</code> → persist 가 감싼 set →{' '}
+                <code>createJSONStorage</code> 의 setItem(여기서 문자열이 된다) →{' '}
+                <code>docHashStorage.setItem</code> → <code>location.hash =</code>.
+              </>
+            ),
+          },
+          {
+            q: 'setItem 의 key 는 어떻게 자동으로 food-storage 가 되나?',
+            a: (
+              <>
+                <code>persist</code> 옵션의 <code>name</code> 이다. 소스가{' '}
+                <code>storage.setItem(options.name, ...)</code> 으로 그대로 넘긴다. 읽기와 삭제도
+                같은 값을 쓴다.
+                <br />
+                <br />
+                우리가 <code>getItem: (key) =&gt; ...</code> 라고 파라미터 이름을 <code>key</code>{' '}
+                로 지었을 뿐이고, 실제로 들어오는 인자는 <code>options.name</code> 이다. 세 스토어가
+                각자 다른 <code>name</code> 을 가져서 해시에 세 개가 나란히 붙는다.
+                <br />
+                <br />
+                <code>name</code> 에는 기본값이 없다. 안 주면 <code>undefined</code> 가 키가 되어
+                조용히 이상해진다.
+              </>
+            ),
+          },
+          {
+            q: 'replacer / reviver 를 조건 없이 쓰면 왜 안 되나?',
+            a: (
+              <>
+                둘 다 <b>모든 키/값 쌍마다</b> 불린다. 조건 없이 감싸면 루트도 <code>version</code>{' '}
+                도 숫자도 감싸고, 감싼 결과에 또 <code>replacer</code> 가 걸려 끝없이 중첩된다.{' '}
+                <code>value instanceof Set</code> 같은 조건이 반드시 필요하다.
+                <br />
+                <br />
+                마커 값으로 <code>{'{ __type: Set }'}</code> 처럼 <b>생성자 함수</b>를 넣는 것도 안
+                된다. <code>JSON.stringify</code> 가 함수를 통째로 빼서 마커가 저장되지 않는다.
+                문자열 <code>&apos;Set&apos;</code> 이어야 한다.
+                <br />
+                <br />
+                그리고 <code>reviver</code> 는 <code>replacer</code> 의 <b>역방향</b>이다. 같은
+                코드를 넣으면 되돌리는 게 아니라 한 번 더 감싼다.
+              </>
+            ),
+          },
+          {
+            q: 'replacer 가 받는 값은 항상 원본인가?',
+            a: (
+              <>
+                아니다. <code>JSON.stringify</code> 는 값에 <code>toJSON</code> 메서드가 있으면{' '}
+                <b>replacer 보다 먼저</b> 부른다. 실측:
+                <br />
+                <code>Set</code> → <code>[object Set]</code> (원본이 온다), <code>Date</code> →{' '}
+                <code>[object String]</code> (이미 문자열이 되어 온다).
+                <br />
+                <br />
+                <code>Date.prototype.toJSON</code> 이 있어서 Date 는 손쓸 새가 없다. Set 에는{' '}
+                <code>toJSON</code> 이 없어서 가로챌 수 있는 것이다.
+                <br />
+                <br />
+                <code>reviver</code> 는 <b>안쪽부터 바깥으로</b> 호출된다 — <code>inner</code> →{' '}
+                <code>outer</code> → 루트(<code>&apos;&apos;</code>) 순.
+              </>
+            ),
+          },
+          {
+            q: '저장 형식을 바꾸면 저장소에 남은 옛 데이터는 어떻게 되나?',
+            a: (
+              <>
+                그대로 남아서 터진다. replacer 를 붙이기 전 해시에는 <code>tags</code> 가{' '}
+                <code>{'{}'}</code> 로 들어 있고, 새 코드가 그걸 읽으면 <code>[...tags]</code> 가{' '}
+                <code>tags is not iterable</code> 로 페이지를 죽인다. 여기서는 <code>asSet</code>{' '}
+                방어막으로 막아뒀다.
+                <br />
+                <br />
+                정공법은 <code>version</code> + <code>migrate</code> 다. 저장된 버전이 다르면{' '}
+                <code>migrate</code> 가 불려 변환할 기회를 준다. <code>migrate</code> 를 안 주면{' '}
+                <code>console.error</code> 만 찍고 <b>저장된 값을 통째로 버린다</b>.
+              </>
+            ),
+          },
         ]}
       />
     </>
