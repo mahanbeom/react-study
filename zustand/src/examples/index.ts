@@ -10,6 +10,7 @@ import TicTacToe from './08-tic-tac-toe/index.tsx';
 import UseShallow from './09-use-shallow.tsx';
 import UrlHash from './10-url-hash.tsx';
 import BeginnerTypeScript from './11-beginner-typescript.tsx';
+import AdvancedTypeScript from './12-advanced-typescript.tsx';
 
 export type Example = {
   id: string;
@@ -86,5 +87,11 @@ export const examples: Example[] = [
     title: 'Beginner TypeScript',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/beginner-typescript.md',
     Component: BeginnerTypeScript,
+  },
+  {
+    id: '12-advanced-typescript',
+    title: 'Advanced TypeScript',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/advanced-typescript.md',
+    Component: AdvancedTypeScript,
   },
 ];
