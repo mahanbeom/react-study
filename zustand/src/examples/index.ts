@@ -11,6 +11,7 @@ import UseShallow from './09-use-shallow.tsx';
 import UrlHash from './10-url-hash.tsx';
 import BeginnerTypeScript from './11-beginner-typescript.tsx';
 import AdvancedTypeScript from './12-advanced-typescript.tsx';
+import AutoGeneratingSelectors from './13-auto-generating-selectors.tsx';
 
 export type Example = {
   id: string;
@@ -93,5 +94,11 @@ export const examples: Example[] = [
     title: 'Advanced TypeScript',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/advanced-typescript.md',
     Component: AdvancedTypeScript,
+  },
+  {
+    id: '13-auto-generating-selectors',
+    title: 'Auto Generating Selectors',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/auto-generating-selectors.md',
+    Component: AutoGeneratingSelectors,
   },
 ];
