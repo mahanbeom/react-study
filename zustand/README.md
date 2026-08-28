@@ -45,7 +45,7 @@ pnpm typecheck  # 타입 검사
 
 ### Learn — TypeScript path
 
-- [ ] Beginner TypeScript
+- [x] Beginner TypeScript
 - [ ] Advanced TypeScript
 - [ ] Auto-generating selectors
 

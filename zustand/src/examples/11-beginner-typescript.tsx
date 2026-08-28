@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { create } from 'zustand';
+import { create, type ExtractState } from 'zustand';
 import { combine } from 'zustand/middleware';
 import Notes from '../ui/Notes.tsx';
 
@@ -124,13 +124,13 @@ type BearState = typeof initialState & {
 //   increase 는 set 의 함수형 갱신(03 복습), reset 은 initialState 를 그대로 넘기면 된다.
 //   set 콜백의 state 파라미터에 타입 표기가 필요 없다는 것도 확인할 것 —
 //   create<BearState>() 가 고정한 T 에서 흘러들어온다.
-const useBearStore = create<BearState>()(() => ({
+const useBearStore = create<BearState>()((set) => ({
   ...initialState,
-  increase: () => {
-    // TODO ① — (by) 파라미터를 받아라. 타입 표기 없이도 number 로 잡히는지 확인할 것.
+  increase: (by) => {
+    set((state) => ({ bears: state.bears + by }));
   },
   reset: () => {
-    // TODO ①
+    set(() => initialState);
   },
 }));
 
@@ -142,7 +142,7 @@ const useBearStore = create<BearState>()(() => ({
 //   힌트: import { create, type ExtractState } from 'zustand' 로 임포트를 바꾸고,
 //   ExtractState<typeof useBearStore> 로 교체. 타입 정의가 없는 스토어(combine 등)나
 //   테스트 · 유틸 함수에서 스토어 타입이 필요할 때 쓰는 도구다.
-type BearSnapshot = BearState; // TODO ②
+type BearSnapshot = ExtractState<typeof useBearStore>; // TODO ②
 
 // 스토어 밖의 평범한 함수 — 스냅샷 타입 덕에 자동완성과 오타 검출이 된다.
 function describeBears(state: BearSnapshot): string {
@@ -158,7 +158,7 @@ function BearPanel() {
   // TODO ③ — 전체 꿀 병 수(bears * foodPerBear)는 스토어에 저장할 필요가 없다.
   //   selector 안에서 계산해 파생값으로 뽑아라. 결과가 number(원시값)라서
   //   useShallow 없이도 안전하다 — 09 에서 왜 그런지 다뤘다.
-  const totalFood = useBearStore(() => 0); // TODO ③
+  const totalFood = useBearStore((state) => state.bears * state.foodPerBear); // TODO ③
 
   const renders = useRef(0);
   renders.current += 1;
@@ -210,12 +210,14 @@ const fetchFishFromApi = (): Promise<FishData> =>
 // TODO ⑤ — fetchFish 를 async 로 바꿔라: loading true → await 가짜 API → fish 반영
 //   → loading false. data 가 FishData 로 타입이 잡히는지 확인할 것.
 const useFishStore = create(
-  combine({ fish: 0, loading: false }, () => ({
+  combine({ fish: 0, loading: false }, (set) => ({
     addFish: () => {
-      // TODO ④
+      set((state) => ({ fish: state.fish + 1 }));
     },
-    fetchFish: () => {
-      void fetchFishFromApi(); // TODO ⑤
+    fetchFish: async () => {
+      set({ loading: true });
+      const data = await fetchFishFromApi(); // data 는 FishData 로 잡힌다
+      set({ fish: data.count, loading: false });
     },
   })),
 );
