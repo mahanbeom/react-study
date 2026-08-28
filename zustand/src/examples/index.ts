@@ -9,6 +9,7 @@ import MapsAndSets from './07-maps-and-sets.tsx';
 import TicTacToe from './08-tic-tac-toe/index.tsx';
 import UseShallow from './09-use-shallow.tsx';
 import UrlHash from './10-url-hash.tsx';
+import BeginnerTypeScript from './11-beginner-typescript.tsx';
 
 export type Example = {
   id: string;
@@ -79,5 +80,11 @@ export const examples: Example[] = [
     title: 'Connect to state with URL hash',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/connect-to-state-with-url-hash.md',
     Component: UrlHash,
+  },
+  {
+    id: '11-beginner-typescript',
+    title: 'Beginner TypeScript',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/beginner-typescript.md',
+    Component: BeginnerTypeScript,
   },
 ];
