@@ -33,6 +33,7 @@ const useDuckStore = create(
       // TODO ① — set({ ducks: 0 }, true) 를 넣어라.
       //   이 한 줄이 "컴파일된다는 것 자체" 가 함정이다. 제대로 타입이 잡힌 스토어라면
       //   replace 에 액션까지 포함한 전체 상태를 요구해서 이런 실수를 막아준다.
+      set({ ducks: 0 }, true);
     },
   })),
 );
@@ -109,35 +110,47 @@ type Logger = <
 // 구현 타입 — 구현은 변형 목록을 다룰 수 없으니 빈 목록 [] 기준으로 단순하게.
 type LoggerImpl = <T>(f: StateCreator<T, [], []>, name?: string) => StateCreator<T, [], []>;
 
+// TODO ② (완료) — set 을 감싼 loggedSet 을 만들어 f 에 넘긴다.
+// 갱신 경로가 둘이라 둘 다 감싼다:
+//   - loggedSet: 액션들이 쓰는 set (initializer 파라미터)
+//   - store.setState: useCamelStore.setState 처럼 스토어 API 로 직접 부르는 경로
 const loggerImpl: LoggerImpl = (f, name) => (set, get, store) => {
-  void name; // TODO ② 에서 사용
-  // TODO ② — set 을 감싼 loggedSet 을 만들어라:
-  //   const loggedSet: typeof set = (...a) => {
-  //     1) 원래 set 을 호출한다 — set(...(a as Parameters<typeof set>))
-  //        (구현 타입도 정확히는 표현 불가라 캐스트가 필요하다 — 문서 레시피 그대로)
-  //     2) 호출 직후 상태를 기록한다 — recordLog(name, get())
-  //   };
-  //   그리고 f 에 set 대신 loggedSet 을 넘겨라.
-  return f(set, get, store);
+  const loggedSet: typeof set = (...a) => {
+    set(...(a as Parameters<typeof set>)); // 원래 set 을 그대로 호출하고
+    recordLog(name, get()); // 호출 직후의 상태를 기록한다
+  };
+
+  const setState = store.setState; // 원본을 붙들어둔 뒤
+  store.setState = (...a) => {
+    setState(...(a as Parameters<typeof setState>)); // 원본을 호출하고
+    recordLog(name, store.getState()); // 마찬가지로 기록
+  };
+
+  // 핵심: f(진짜 initializer)에게 "가짜 set" 을 쥐여준다.
+  // 이후 모든 액션은 자기도 모르게 loggedSet 을 부르게 된다.
+  return f(loggedSet, get, store);
 };
 
 // 거짓말 캐스트 — create 자신이 쓰는 전략과 같다. 타입은 약속, 구현은 근사치.
 const logger = loggerImpl as unknown as Logger;
-void logger; // TODO ③ 을 완성하면 이 줄은 지워라
 
 type CamelState = {
   camels: number;
   addCamel: () => void;
 };
 
-// TODO ③ — 위에서 만든 logger 를 끼워라:
-//   create<CamelState>()(logger((set) => ({ ... }), 'camel-store'))
-//   Logger 의 공개 타입이 Mps/Mcs 를 통과시키므로 persist 등과 겹쳐도 그대로 동작한다.
-//   (②를 먼저 완성해야 로그가 찍힌다)
-const useCamelStore = create<CamelState>()((set) => ({
-  camels: 0,
-  addCamel: () => set((s) => ({ camels: s.camels + 1 })),
-}));
+// TODO ③ (완료) — logger 를 끼웠다. initializer 는 한 글자도 안 바뀌었다는 것이 포인트 —
+// 미들웨어는 initializer 를 감싸는 함수일 뿐이다. Logger 의 공개 타입이 Mps/Mcs 를
+// 통과시키므로 persist 등과 겹쳐도 그대로 동작한다.
+const useCamelStore = create<CamelState>()(
+  logger(
+    (set) => ({
+      camels: 0,
+      addCamel: () => set((s) => ({ camels: s.camels + 1 })),
+    }),
+    'camel-store',
+  ),
+);
 
 function LoggerPanel() {
   const camels = useCamelStore((state) => state.camels);
@@ -160,7 +173,7 @@ function LoggerPanel() {
       <h3>set 호출 로그 (최근 6개)</h3>
       {entries.length === 0 ? (
         <p>
-          <small>아직 로그가 없다. TODO ②·③ 을 완성하고 낙타 +1 을 눌러볼 것.</small>
+          <small>아직 로그가 없다. 낙타 +1 을 누르면 logger 가 여기에 기록한다.</small>
         </p>
       ) : (
         <ul>
@@ -193,15 +206,14 @@ const counterStore = createStore<CounterState>()((set) => ({
 // React 밖에서도 쓸 수 있다는 증거 — 모듈 로드 시점에 한 번 올려둔다.
 counterStore.getState().inc();
 
-// TODO ④ — 아래 컴포넌트는 useStore(counterStore, ...) 를 직접 반복하고 있다.
-//   create 가 내부에서 해주던 결합(react.mjs 의 createImpl)을 손으로 재현해서
-//   bounded hook 을 만들어 교체해라:
-//   const useCounter = <T,>(selector: (state: CounterState) => T): T =>
-//     useStore(counterStore, selector);
+// TODO ④ (완료) — bounded hook. create 가 내부에서 해주던 결합(react.mjs 의 createImpl)을
+// 손으로 재현한 것이다. 스토어를 클로저로 붙들고 selector 만 받는다.
+const useCounter = <T,>(selector: (state: CounterState) => T): T =>
+  useStore(counterStore, selector);
 
 function CounterPanel() {
-  const count = useStore(counterStore, (state) => state.count);
-  const inc = useStore(counterStore, (state) => state.inc);
+  const count = useCounter((state) => state.count);
+  const inc = useCounter((state) => state.inc);
 
   return (
     <section>
