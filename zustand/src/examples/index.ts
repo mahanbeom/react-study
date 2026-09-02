@@ -12,6 +12,7 @@ import UrlHash from './10-url-hash.tsx';
 import BeginnerTypeScript from './11-beginner-typescript.tsx';
 import AdvancedTypeScript from './12-advanced-typescript.tsx';
 import AutoGeneratingSelectors from './13-auto-generating-selectors.tsx';
+import NextjsSsr from './14-nextjs-ssr.tsx';
 
 export type Example = {
   id: string;
@@ -100,5 +101,11 @@ export const examples: Example[] = [
     title: 'Auto Generating Selectors',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/auto-generating-selectors.md',
     Component: AutoGeneratingSelectors,
+  },
+  {
+    id: '14-nextjs-ssr',
+    title: 'Next.js & SSR/hydration',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/nextjs.md',
+    Component: NextjsSsr,
   },
 ];
