@@ -141,6 +141,27 @@ export default function AutoGeneratingSelectors() {
             직접 만들기 싫으면 <code>zustood</code> 등 서드파티 라이브러리도 있다.
           </>,
         ]}
+        questions={[
+          {
+            q: 'use 는 zustand 에 기본 내장된 것인가, 아니면 공통 모듈처럼 직접 만들어 쓰는 것인가?',
+            a: (
+              <>
+                <b>내장이 아니다.</b> createStore 가 만드는 스토어의 전부는{' '}
+                <code>{'{ setState, getState, getInitialState, subscribe }'}</code> 4개다
+                (vanilla.mjs 실측). React 용 create 는 여기에 &quot;훅으로 호출 가능&quot; 만
+                얹는다. <code>use</code> 는 이 예제의 <code>store.use = ...</code> 줄이 태어나게 한{' '}
+                <b>우리 쪽 확장</b>이고, 문서 제목이 &quot;Create the following function&quot; 인
+                이유다.
+                <br />
+                <br />
+                실무 도입 형태: ① 대부분은 유틸 없이 selector 를 직접 쓴다(가장 흔함). ② 도입한다면{' '}
+                <code>src/lib/createSelectors.ts</code> 같은 <b>공통 모듈 하나</b>를 전 스토어가
+                공유하고, 각 스토어 파일에서 <code>createSelectors(useXxxBase)</code> 로 감싸 export
+                한다. ③ zustood 등 서드파티도 있다. 팀 컨벤션 문제이지 필수가 아니다.
+              </>
+            ),
+          },
+        ]}
       />
     </>
   );
