@@ -30,7 +30,9 @@ const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(_store: S) =
   //   }
   //   포인트: use.rabbits 에 담기는 것은 "값" 이 아니라 "구독하는 훅" 이다.
   //   () => store(selector) — 바깥 화살표가 훅, 안쪽이 늘 쓰던 selector.
-  void use;
+  for (const k of Object.keys(store.getState())) {
+    use[k] = () => store((s) => s[k as keyof typeof s]);
+  }
 
   return store;
 };

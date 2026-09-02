@@ -47,7 +47,7 @@ pnpm typecheck  # 타입 검사
 
 - [x] Beginner TypeScript
 - [x] Advanced TypeScript
-- [ ] Auto-generating selectors
+- [x] Auto-generating selectors
 
 ### Learn — Frameworks and platforms
 
