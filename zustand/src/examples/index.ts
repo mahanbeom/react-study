@@ -13,6 +13,7 @@ import BeginnerTypeScript from './11-beginner-typescript.tsx';
 import AdvancedTypeScript from './12-advanced-typescript.tsx';
 import AutoGeneratingSelectors from './13-auto-generating-selectors.tsx';
 import NextjsSsr from './14-nextjs-ssr.tsx';
+import InitializeStateWithProps from './15-initialize-state-with-props.tsx';
 
 export type Example = {
   id: string;
@@ -107,5 +108,11 @@ export const examples: Example[] = [
     title: 'Next.js & SSR/hydration',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/nextjs.md',
     Component: NextjsSsr,
+  },
+  {
+    id: '15-initialize-state-with-props',
+    title: 'Initialize state with props',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/initialize-state-with-props.md',
+    Component: InitializeStateWithProps,
   },
 ];
