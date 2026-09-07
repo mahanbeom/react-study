@@ -152,7 +152,6 @@ function useGreetContext<T>(selector: (state: GreetState) => T): T {
 
 function ScopedBadge() {
   const user = useGreetContext((state) => state.user);
-  console.log('ScopedBadge user: ', user);
   return <span>안녕하세요, {user}님</span>;
 }
 
