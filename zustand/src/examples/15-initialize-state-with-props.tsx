@@ -44,20 +44,17 @@ const BearContext = createContext<BearStore | null>(null);
 type BearProviderProps = PropsWithChildren<Partial<BearProps>>;
 
 /**
- * TODO ① — 지금은 렌더할 때마다 스토어를 새로 만든다(= 아래 2번의 &quot;틀린 쪽&quot;과 같다).
- *
- *   const [store] = useState(() => createBearStore(props));
- *
- * 로 고쳐라. useState 의 초기화 함수는 그 컴포넌트 인스턴스당 딱 한 번만 실행되므로
- * 스토어의 수명이 "Provider 가 트리에 살아 있는 동안"으로 묶인다.
- * 고치고 나면 2번의 두 상자가 다르게 동작한다.
+ * useState 의 초기화 함수는 그 컴포넌트 인스턴스당 딱 한 번만 실행된다. 그래서 스토어의
+ * 수명이 "이 Provider 가 트리에 살아 있는 동안"으로 묶인다 — 언마운트되면 스토어도 함께
+ * 도달 불가가 되어 GC 된다. useMemo 는 React 가 캐시를 버릴 수 있다고 명시돼 있어
+ * "정확히 한 번"을 보장하지 않으므로 여기에 쓰지 않는다.
  */
 function BearProvider({ children, ...props }: BearProviderProps) {
-  const store = createBearStore(props);
+  const [store] = useState(() => createBearStore(props));
   return <BearContext.Provider value={store}>{children}</BearContext.Provider>;
 }
 
-/** 일부러 틀리게 짠 Provider — 2번에서 비교용으로만 쓴다 */
+/** 일부러 틀리게 짠 Provider — 2번에서 비교용으로만 쓴다. useState 로 감싸지 않는다. */
 function NaiveBearProvider({ children, ...props }: BearProviderProps) {
   const store = createBearStore(props);
   return <BearContext.Provider value={store}>{children}</BearContext.Provider>;
@@ -88,24 +85,18 @@ function BearCounter() {
 const MEALS = ['연어', '베리', '견과'];
 
 function BearMeals() {
-  void useShallow; // TODO ② 에서 사용
-  void MEALS; // TODO ② 에서 사용
-
-  // TODO ② — 곰 수만큼 식사를 배열로 만들어 보여라.
-  //   const order = useBearContext((s) =>
-  //     Array.from({ length: s.bears }, (_, index) => MEALS[index % MEALS.length]),
-  //   );
-  //   먼저 이렇게 useShallow 없이 써 보고 콘솔을 확인할 것 — selector 가 매 호출마다
-  //   새 배열을 만들어 Object.is 가 항상 false 라, v5 는 "getSnapshot should be cached"
-  //   무한 루프 경고를 낸다(09 에서 본 그것). 그다음 selector 를 useShallow(...) 로
-  //   감싸면 조용해진다. 두 상태를 모두 눈으로 보고 넘어가라.
-  const order: string[] = [];
+  // selector 가 매 호출마다 새 배열을 만든다. 그대로 쓰면 Object.is 가 늘 false 라
+  // 무한 루프("Maximum update depth exceeded")가 난다 — useShallow 로 감싸서, 얕은 비교가
+  // 같으면 "이전 배열 그 객체"를 그대로 돌려주게 만든다.
+  const order = useBearContext(
+    useShallow((s) => Array.from({ length: s.bears }, (_, index) => MEALS[index % MEALS.length])),
+  );
 
   if (order.length === 0) {
     return (
       <p>
         <small>
-          식사 없음 <em>(TODO ② 를 채우면 곰 수만큼 나온다)</em>
+          식사 없음 <em>(곰이 0 마리다)</em>
         </small>
       </p>
     );
@@ -177,8 +168,7 @@ function RerenderLab() {
       <p>
         <small>
           틀린 쪽은 부모가 리렌더될 때마다 스토어가 통째로 갈아치워져 늘린 곰이 사라진다. 메모리
-          누수가 아니라 <b>상태 유실 버그</b>다(옛 스토어는 아무도 참조하지 않으니 GC 된다). TODO ①
-          을 채우기 전에는 두 상자가 똑같이 망가진다.
+          누수가 아니라 <b>상태 유실 버그</b>다(옛 스토어는 아무도 참조하지 않으니 GC 된다).
         </small>
       </p>
     </section>
@@ -231,6 +221,16 @@ export default function InitializeStateWithProps() {
             모듈은 <code>use-sync-external-store</code> 패키지를 필요로 하는데 이 프로젝트에는
             설치돼 있지 않아 여기서는 재현하지 않았다. v4 호환 경로이고 v5 에서는{' '}
             <code>useShallow</code> 가 권장이라 <b>몰라도 되는 쪽</b>이다.
+          </>,
+          <>
+            <code>useShallow</code> 의 구현은 6줄이다 —{' '}
+            <code>
+              const prev = useRef(); return (state) =&gt; {'{'} const next = selector(state); return
+              shallow(prev.current, next) ? prev.current : (prev.current = next) {'}'}
+            </code>
+            . <b>훅이 아니라 selector 를 감싸 새 selector 를 만들어 돌려준다.</b> 얕은 비교가 같으면{' '}
+            <b>이전 배열 그 객체</b>를 그대로 돌려주므로 <code>useSyncExternalStore</code> 안의{' '}
+            <code>Object.is</code> 가 통과한다. 값이 아니라 <b>참조를 고정</b>하는 것이 요점이다.
           </>,
         ]}
       />

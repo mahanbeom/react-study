@@ -54,7 +54,7 @@ pnpm typecheck  # 타입 검사
 - [x] Next.js
 - [x] SSR and hydration — 14 에 함께. Vite SPA 라 실제 서버는 없고,
       브라우저에서 renderToString + hydrateRoot 로 mismatch 를 실측한다
-- [ ] Initialize state with props
+- [x] Initialize state with props
 
 ### Learn — Testing and quality
 
