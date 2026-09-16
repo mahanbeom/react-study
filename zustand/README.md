@@ -60,7 +60,7 @@ pnpm typecheck  # 타입 검사
 
 - [ ] Testing stores and components
 - [ ] Flux-inspired practice
-- [ ] How to reset state
+- [x] How to reset state
 
 ### Reference — APIs
 

@@ -19,11 +19,16 @@ const storeResetFns = new Set<() => void>();
 const createUncurried = <T,>(stateCreator: StateCreator<T>) => {
   const store = actualCreate(stateCreator);
 
-  // TODO ③ — 이 스토어를 "전체 초기화" 대상으로 등록하라.
-  //   storeResetFns.add(() => {
-  //     store.setState(store.getInitialState(), true);
-  //   });
-  //   replace 플래그(두 번째 인자 true)가 중요하다 — 2번에서 이유를 본다.
+  // 이 스토어를 "전체 초기화" 대상으로 등록한다. 여기서 Set 에 들어가는 것은
+  // 스토어가 아니라 "이 스토어 하나를 되돌리는 법" 을 적어둔 함수다. 화살표 함수가
+  // 바로 위의 store 변수를 클로저로 붙들기 때문에, create 를 부를 때마다 서로 다른
+  // 스토어를 가리키는 쪽지가 한 장씩 쌓인다.
+  //
+  // 이 줄이 도는 시점은 로그아웃이 아니라 "스토어가 태어날 때"(= 모듈 로드) 다.
+  // 스토어가 스스로 등록하므로 나중에 스토어를 추가해도 등록을 잊을 자리가 없다.
+  storeResetFns.add(() => {
+    store.setState(store.getInitialState(), true);
+  });
 
   return store;
 };
@@ -52,8 +57,6 @@ type CounterState = {
 };
 
 const useCounterStore = create<CounterState>()((set, get, store) => {
-  void store; // TODO ①② 에서 사용
-
   return {
     count: 0,
     label: '기본',
@@ -61,16 +64,13 @@ const useCounterStore = create<CounterState>()((set, get, store) => {
     inc: () => set((state) => ({ count: state.count + 1 })),
     rename: () => set({ label: `수정됨 ${get().count}` }),
 
-    // TODO ① — 지금은 초기값을 손으로 적어뒀다. count 만 되돌리고 label 은 빠뜨린다.
-    //   필드가 늘 때마다 이 줄을 같이 고쳐야 하는데, 실무에서는 반드시 잊는다.
-    //   store.getInitialState() 로 바꿔라:
-    //     reset: () => set(store.getInitialState()),
-    reset: () => set({ count: 0 }),
+    // 초기값을 손으로 적지 않는다. 필드가 늘어도 이 줄은 그대로다.
+    // 다만 set 은 병합이라, 초기 상태에 없던 키는 지워지지 않는다(2번 패널).
+    reset: () => set(store.getInitialState()),
 
-    // TODO ② — 위와 같지만 replace 플래그를 켠다.
-    //     hardReset: () => set(store.getInitialState(), true),
-    //   지금은 reset 과 똑같이 두었다. 2번 패널에서 차이가 드러난다.
-    hardReset: () => set({ count: 0 }),
+    // 두 번째 인자가 replace 플래그. 병합이 아니라 통째로 갈아끼우므로
+    // 초기 상태에 없던 키까지 사라진다.
+    hardReset: () => set(store.getInitialState(), true),
   };
 });
 
@@ -235,6 +235,40 @@ export default function HowToResetState() {
             여기서는 로그아웃 버튼이 부를 뿐이다 — &quot;모듈 전역 스토어를 경계마다 비운다&quot; 는
             같은 문제의 두 얼굴이다.
           </>,
+        ]}
+        questions={[
+          {
+            q: 'resetAllStores 에서 storeResetFns.add(...) 는 왜 필요한가?',
+            a: (
+              <>
+                <code>add</code> 는 <code>Set</code> 에 원소를 넣는 메서드다(배열의{' '}
+                <code>push</code> 와 같고, 중복이 안 쌓이는 점만 다르다). 중요한 건{' '}
+                <b>거기에 스토어가 아니라 함수가 들어간다</b>는 것 — 실측으로 상자 안을 열면{' '}
+                <code>[&apos;function&apos;, &apos;function&apos;, &apos;function&apos;]</code>{' '}
+                이다. &quot;이 스토어 하나를 되돌리는 법&quot;을 적은 쪽지들이고, 각 쪽지는 화살표
+                함수의 <b>클로저</b>로 자기 <code>store</code> 를 붙들고 있다.
+                <br />
+                <br />
+                <b>도는 시점</b>도 헷갈리기 쉽다. <code>add</code> 는 로그아웃 때가 아니라{' '}
+                <b>스토어가 태어날 때(= 모듈 로드)</b> 한 번 돈다. 실측하면 <code>create()</code> 를
+                부를 때마다 Set 크기가 1 → 2 → 3 으로 늘고, 로그아웃은 그 상자를 순회하기만 한다.
+                스토어가 스스로 등록하는 셈이다(self-registration).
+                <br />
+                <br />
+                <b>왜 손으로 나열하지 않나.</b> 나열해도 동작은 같다. 하지만 그건 TODO ① 과 똑같은
+                문제다 — ① 에서 <code>set({'{ count: 0 }'})</code> 가 <code>label</code> 을
+                빠뜨렸듯, 스토어를 새로 만들 때 <code>resetAllStores</code> 에 한 줄 추가하는 것을
+                잊는다. 그리고 <b>잊힌 그 스토어가 이전 사용자의 데이터를 흘린다.</b> 등록 방식에는
+                잊을 자리가 없다.
+                <br />
+                <br />
+                실무에서 하나 더 — <b>순환 import</b>를 피한다. 손으로 나열하면{' '}
+                <code>resetAllStores</code> 가 모든 스토어를 import 해야 하는데, 스토어 쪽에
+                로그아웃 액션을 두려면 거꾸로 import 해야 해서 순환이 생긴다. 등록 방식에서는
+                스토어가 <code>resetAllStores</code> 의 존재를 몰라도 되므로 의존 방향이 한쪽이다.
+              </>
+            ),
+          },
         ]}
       />
     </>
