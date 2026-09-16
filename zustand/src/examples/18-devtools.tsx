@@ -19,6 +19,8 @@ declare global {
   interface Window {
     __REDUX_DEVTOOLS_EXTENSION__?: {
       connect: (options: unknown) => DevtoolsConnection;
+      /** 이 예제가 심은 가짜라는 표식. 진짜 확장에는 없다. */
+      __studyFake?: true;
     };
   }
 }
@@ -62,22 +64,36 @@ const push = (action: string, state: unknown) => {
 /** zustand 가 붙잡아 둔 리스너. 시간여행 메시지를 이쪽으로 밀어넣는다. */
 let devtoolsListener: ((message: DevtoolsMessage) => void) | null = null;
 
+/**
+ * 진짜 Redux DevTools 확장이 이미 있는가?
+ * 확장은 페이지 스크립트보다 먼저 window 에 자기를 꽂아두므로, 있으면 덮어쓰지 않는다.
+ * 덮어쓰면 진짜 패널이 죽는다.
+ *
+ * __studyFake 를 확인하는 이유: HMR 로 이 모듈이 다시 평가되면 직전에 우리가 심어둔
+ * 가짜가 window 에 남아 있어서, 표식이 없으면 "진짜가 있다" 고 오인한다.
+ */
+const existing = window.__REDUX_DEVTOOLS_EXTENSION__;
+export const usingFakeConnector = !existing || existing.__studyFake === true;
+
 // 스토어를 만들기 "전에" 심어야 한다 — devtoolsImpl 이 생성 시점에 window 를 읽는다.
-window.__REDUX_DEVTOOLS_EXTENSION__ = {
-  connect: () => ({
-    init: (state) => push('@@INIT', state),
-    send: (action, state) => push(action?.type ?? '(null)', state),
-    subscribe: (listener) => {
-      devtoolsListener = listener;
-      return () => {
+if (usingFakeConnector) {
+  window.__REDUX_DEVTOOLS_EXTENSION__ = {
+    __studyFake: true,
+    connect: () => ({
+      init: (state) => push('@@INIT', state),
+      send: (action, state) => push(action?.type ?? '(null)', state),
+      subscribe: (listener) => {
+        devtoolsListener = listener;
+        return () => {
+          devtoolsListener = null;
+        };
+      },
+      unsubscribe: () => {
         devtoolsListener = null;
-      };
-    },
-    unsubscribe: () => {
-      devtoolsListener = null;
-    },
-  }),
-};
+      },
+    }),
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────
 // 데모 스토어 — 문서의 jungle 예제
@@ -96,13 +112,10 @@ const useJungleStore = create<JungleStore>()(
       bears: 0,
       fishes: 0,
 
-      // TODO ① — set 의 세 번째 인자가 devtools 에 찍히는 액션 이름이다.
-      //   set(partial, replace, actionName) 순서라 두 번째는 undefined 로 비워둔다:
-      //     set((state) => ({ bears: state.bears + 1 }), undefined, 'jungle/addBear')
-      //   지금은 이름을 안 줬다. 타임라인에 무엇으로 찍히는지 먼저 확인할 것.
-      addBear: () => set((state) => ({ bears: state.bears + 1 })),
+      // set 의 세 번째 인자가 devtools 에 찍히는 액션 이름이다.
+      // set(partial, replace, actionName) 순서라 두 번째를 undefined 로 비워야 한다.
+      addBear: () => set((state) => ({ bears: state.bears + 1 }), undefined, 'jungle/addBear'),
 
-      // 이쪽은 비교용으로 이름을 붙여 두었다.
       addFish: () => set((state) => ({ fishes: state.fishes + 1 }), undefined, 'jungle/addFish'),
     }),
     { name: 'jungle' },
@@ -143,10 +156,9 @@ function JunglePanel() {
         곰 <strong>{bears}</strong> / 물고기 <strong>{fishes}</strong>
       </p>
       <p>
-        <button onClick={addBear}>곰 추가 (이름 없음)</button>{' '}
-        <button onClick={addFish}>물고기 추가 (이름 있음)</button>{' '}
+        <button onClick={addBear}>곰 추가</button> <button onClick={addFish}>물고기 추가</button>{' '}
         <button onClick={() => useJungleStore.setState({ bears: 0, fishes: 0 })}>
-          setState 직접
+          setState 직접 (이름 없음)
         </button>
       </p>
     </section>
@@ -159,7 +171,16 @@ function TimelinePanel() {
   return (
     <section>
       <h2>2. zustand 가 확장에 보낸 것</h2>
-      {entries.length === 0 ? (
+      {!usingFakeConnector ? (
+        <p>
+          <small>
+            <b>진짜 Redux DevTools 확장이 감지되어 가짜 연결기를 심지 않았다.</b> zustand 는 지금
+            진짜 확장으로 보내고 있으니 브라우저 개발자도구의 <b>Redux</b> 탭을 열어 보라. 거기{' '}
+            <code>jungle</code> 커넥션의 액션 목록이 아래 표와 같은 것이다 —{' '}
+            <code>jungle/addBear</code>, <code>jungle/addFish</code>.
+          </small>
+        </p>
+      ) : entries.length === 0 ? (
         <p>
           <small>아직 없음</small>
         </p>
@@ -207,8 +228,18 @@ export default function Devtools() {
     <>
       <p>
         <code>devtools</code> 는 Redux DevTools 확장에 상태 변화를 흘려보내는 미들웨어다. 확장이
-        없으면 <b>아무 일도 하지 않고 그대로 통과</b>한다. 이 인앱 브라우저에는 확장이 없으므로,
-        확장인 척하는 가짜 연결기를 심어 zustand 가 실제로 보내는 것을 아래에 그린다.
+        없으면 <b>아무 일도 하지 않고 그대로 통과</b>한다. 확장이 없는 브라우저에서는 확장인 척하는
+        가짜 연결기를 심어 zustand 가 실제로 보내는 것을 아래에 그린다 —{' '}
+        <b>확장이 있으면 심지 않는다.</b>
+      </p>
+      <p>
+        <small>
+          실무에서 쓸 것은 두 줄뿐이다 — <code>devtools(...)</code> 로 감싸고, <code>set</code> 의
+          세 번째 인자로 액션 이름을 주는 것. 확장을 깔아도 이 둘은 그대로 필요하다(확장은{' '}
+          <code>window</code> 에 자기를 꽂아둘 뿐, 보내는 쪽은 이 미들웨어다). 가짜 연결기와
+          시간여행 배선은 <b>프로토콜을 눈으로 보려고 만든 교보재</b>이고 실무에서 직접 짤 일은
+          없다.
+        </small>
       </p>
 
       <JunglePanel />
@@ -256,6 +287,49 @@ export default function Devtools() {
             슬라이스 패턴이라면 <code>&apos;jungle:bear/addBear&apos;</code> 처럼 접두어를 붙여 어느
             슬라이스인지 드러내는 것이 문서의 권장이다.
           </>,
+        ]}
+        questions={[
+          {
+            q: '확장을 깔면 devtools 미들웨어나 actionName 은 없어도 되나?',
+            a: (
+              <>
+                <b>아니다. 셋 중 하나만 빠진다.</b>
+                <br />
+                <br />① <code>devtools(...)</code> 미들웨어 — <b>그대로 필요</b>. 확장은{' '}
+                <code>window.__REDUX_DEVTOOLS_EXTENSION__</code> 에 자기를 꽂아두고 기다릴 뿐이고,
+                거기에 <code>connect()</code> 하고 <code>send()</code> 를 보내는 쪽은 이 미들웨어다.
+                감싸지 않으면 확장은 그 스토어의 존재조차 모른다.
+                <br />② <code>set</code> 의 세 번째 인자 — <b>그대로 필요</b>. 확장은 받은{' '}
+                <code>action.type</code> 을 그대로 목록에 보여줄 뿐 이름을 지어주지 않는다.
+                <br />③ 이 예제가 심은 가짜 연결기 — <b>불필요</b>. 확장이 진짜를 꽂아주므로 심지
+                않는다(심으면 진짜를 덮어써서 패널이 죽는다. 그래서 <code>usingFakeConnector</code>{' '}
+                로 걸러낸다).
+              </>
+            ),
+          },
+          {
+            q: 'devtools 로 감싸면 set 의 동작이 달라지나?',
+            a: (
+              <>
+                <b>상태 갱신 자체는 완전히 같다.</b> 미들웨어가 하는 일은 &quot;원래 동작 + 보고 한
+                줄&quot; 이 전부다:
+                <br />
+                <code>
+                  api.setState = (state, replace, nameOrAction) =&gt; {'{'} const r = set(state,
+                  replace); ... connection?.send(action, get()); return r; {'}'}
+                </code>
+                <br />
+                <br />
+                달라지는 건 둘. <b>시그니처가 넓어져</b> 세 번째 인자(액션 이름)를 받고,{' '}
+                <b>저장은 확장이 한다</b> — devtools 는 보내기만 하고 쌓아두지 않는다. 그마저도
+                단방향이 아니라 <code>subscribe</code> 로 역방향(시간여행) 통로를 함께 연다.
+                <br />
+                <br />이 모양은 모든 미들웨어가 공유한다 — <code>set</code> 을 감싸 원래 동작 뒤에
+                자기 일을 덧붙인다. persist 는 <code>setItem()</code>, devtools 는{' '}
+                <code>send()</code>, 12 의 logger 는 <code>console.log</code>. 목적지만 다르다.
+              </>
+            ),
+          },
         ]}
       />
     </>

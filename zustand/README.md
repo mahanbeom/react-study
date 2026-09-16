@@ -84,7 +84,10 @@ pnpm typecheck  # 타입 검사
 ### Reference — Middlewares
 
 - [ ] `persist`
-- [ ] `devtools`
+- [x] `devtools` — 18. 확장이 없는 환경이라 window.__REDUX_DEVTOOLS_EXTENSION__ 을
+      직접 구현해 zustand 가 보내는 init/send 를 화면에 그린다.
+      실무에서 쓸 것은 devtools(...) 로 감싸기 + set 세 번째 인자로 액션 이름 주기 둘뿐.
+      시간여행(TODO ②)은 남겨 둠 — 프로토콜 확인용 교보재이고 실무에 필요하지 않다.
 - [ ] `redux`
 - [ ] `immer`
 - [ ] `combine`
