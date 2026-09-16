@@ -7,6 +7,7 @@ zustand 공식문서를 순서대로 따라가며 예제를 하나씩 구현하�
 
 ```bash
 pnpm dev        # 개발 서버 (http://localhost:5174)
+pnpm test       # 테스트 (vitest + React Testing Library)
 pnpm lint       # 린트
 pnpm typecheck  # 타입 검사
 ```
@@ -58,7 +59,7 @@ pnpm typecheck  # 타입 검사
 
 ### Learn — Testing and quality
 
-- [ ] Testing stores and components
+- [x] Testing stores and components
 - [ ] Flux-inspired practice
 - [x] How to reset state
 

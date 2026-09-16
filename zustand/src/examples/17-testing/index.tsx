@@ -74,7 +74,49 @@ export default function Testing() {
             <code>globals: true</code> 를 켜지 않았다. 켜면 <code>describe/test/expect</code> 를
             import 없이 쓸 수 있지만 <code>vitest/globals</code> 타입 선언이 따로 필요하다. 파일마다
             명시적으로 import 하는 편이 어디서 온 함수인지 드러나서 학습용으로 낫다.
+            <br />
+            <br />그 대가가 하나 있었다 — <b>RTL 이 자동 cleanup 을 걸지 못한다.</b> RTL 은 전역{' '}
+            <code>afterEach</code> 가 있을 때만 스스로 등록하기 때문에, 처음에는 render 결과가
+            테스트마다 쌓여 <code>found multiple elements</code> 가 났다.{' '}
+            <code>setup-vitest.ts</code> 에서 <code>afterEach(cleanup)</code> 을 직접 걸어 해결했다.
           </>,
+        ]}
+        questions={[
+          {
+            q: 'test.todo 는 무슨 뜻인가?',
+            a: (
+              <>
+                <b>&quot;이 테스트를 쓸 예정&quot;이라는 표시</b>다. 콜백을 아예 받지 않으므로
+                실행되는 코드가 없고, 리포트에 <code>2 todo</code> 로 계속 떠서 잊지 않게 한다.
+                주석으로 적는 대신 테스트 결과에 남기는 셈이다.
+                <br />
+                <br />
+                <code>test(&apos;...&apos;, fn)</code> 은 콜백이 있고 실행된다.{' '}
+                <code>test.skip(&apos;...&apos;, fn)</code> 은 콜백이 있지만 건너뛴다(깨진 테스트를
+                임시로 막을 때). <code>test.todo(&apos;...&apos;)</code> 는 콜백 자체가 없다 — 아직
+                안 쓴 것이다.
+              </>
+            ),
+          },
+          {
+            q: 'describe 본문에 단언을 써도 되나?',
+            a: (
+              <>
+                <b>안 된다.</b> <code>describe</code> 의 본문은 &quot;어떤 테스트들이 있나&quot; 를
+                훑는 <b>수집 단계</b>에 파일당 한 번 실행된다. 테스트가 도는 시점이 아니다.
+                <br />
+                <br />
+                거기에 쓴 코드는 <b>실행은 되지만 어떤 테스트에도 속하지 않는다.</b> 통과해도{' '}
+                <code>✓</code> 가 안 찍히고, 실패하면 파일 전체 수집이 무너져 리포트가{' '}
+                <code>Tests no tests</code> 로 나온다(실측). 안에 멀쩡한 테스트가 있어도 함께
+                사라지고, 무엇이 실패했는지도 알려주지 못한다.
+                <br />
+                <br />
+                단언은 반드시 <code>test()</code> 콜백 안에 둔다. 여러 테스트가 공유할 준비 코드가
+                필요하면 <code>beforeEach</code> 를 쓴다 — 그건 테스트마다 다시 돈다.
+              </>
+            ),
+          },
         ]}
       />
     </>

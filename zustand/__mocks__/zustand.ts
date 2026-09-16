@@ -14,12 +14,11 @@ export const storeResetFns = new Set<() => void>();
 const createUncurried = <T>(stateCreator: ZustandExportedTypes.StateCreator<T>) => {
   const store = actualCreate(stateCreator);
 
-  // TODO ① — 16 에서 만든 등록 패턴을 여기에 옮겨라.
-  //   storeResetFns.add(() => {
-  //     store.setState(store.getInitialState(), true);
-  //   });
-  // 비워두면 아래 afterEach 가 빈 Set 을 순회해 아무 일도 하지 않는다.
-  // 먼저 그 상태로 pnpm test 를 돌려 "무엇이 깨지는지" 부터 볼 것.
+  // 16 의 등록 패턴 그대로. 스토어가 태어날 때 자기 리셋 함수를 등록해두고,
+  // 아래 afterEach 가 테스트 하나가 끝날 때마다 전부 돌린다.
+  storeResetFns.add(() => {
+    store.setState(store.getInitialState(), true);
+  });
 
   return store;
 };
@@ -30,7 +29,12 @@ export const create = (<T>(stateCreator?: ZustandExportedTypes.StateCreator<T>) 
 const createStoreUncurried = <T>(stateCreator: ZustandExportedTypes.StateCreator<T>) => {
   const store = actualCreateStore(stateCreator);
 
-  // TODO ① (계속) — createStore 로 만든 스토어도 같은 방식으로 등록한다.
+  // createStore 로 만든 스토어도 같은 방식으로 등록한다. Context 판은 사실
+  // 테스트마다 새로 만들어져 오염될 일이 없지만, 앱 어디선가 vanilla 스토어를
+  // 모듈 최상단에 두는 순간 필요해진다.
+  storeResetFns.add(() => {
+    store.setState(store.getInitialState(), true);
+  });
 
   return store;
 };
