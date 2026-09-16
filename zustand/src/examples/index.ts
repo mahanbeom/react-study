@@ -16,6 +16,7 @@ import NextjsSsr from './14-nextjs-ssr.tsx';
 import InitializeStateWithProps from './15-initialize-state-with-props.tsx';
 import HowToResetState from './16-how-to-reset-state.tsx';
 import Testing from './17-testing/index.tsx';
+import Devtools from './18-devtools.tsx';
 
 export type Example = {
   id: string;
@@ -128,5 +129,11 @@ export const examples: Example[] = [
     title: 'Testing',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/testing.md',
     Component: Testing,
+  },
+  {
+    id: '18-devtools',
+    title: 'devtools',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/devtools.md',
+    Component: Devtools,
   },
 ];

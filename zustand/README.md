@@ -60,7 +60,12 @@ pnpm typecheck  # 타입 검사
 ### Learn — Testing and quality
 
 - [x] Testing stores and components
-- [ ] Flux-inspired practice
+- [x] Flux-inspired practice — 개념만 정리 (예제 없음). 권장 패턴 4가지 중 셋은
+      이미 다뤘다: 전역 상태는 스토어 하나에(크면 슬라이스 → 05), 갱신은 반드시
+      set/setState 로(병합과 알림을 보장하는 유일한 통로), 액션은 스토어 안에
+      두거나 모듈 레벨로 빼거나(→ 04). 새로운 것은 Redux 식 dispatch 패턴 하나인데,
+      스토어에 dispatch 필드를 두고 reducer 를 호출하는 형태이거나
+      zustand/middleware 의 redux 미들웨어다. Redux 에서 이주하는 경우가 아니면 쓰지 않는다.
 - [x] How to reset state
 
 ### Reference — APIs
