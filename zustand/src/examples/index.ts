@@ -14,6 +14,7 @@ import AdvancedTypeScript from './12-advanced-typescript.tsx';
 import AutoGeneratingSelectors from './13-auto-generating-selectors.tsx';
 import NextjsSsr from './14-nextjs-ssr.tsx';
 import InitializeStateWithProps from './15-initialize-state-with-props.tsx';
+import HowToResetState from './16-how-to-reset-state.tsx';
 
 export type Example = {
   id: string;
@@ -114,5 +115,11 @@ export const examples: Example[] = [
     title: 'Initialize state with props',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/initialize-state-with-props.md',
     Component: InitializeStateWithProps,
+  },
+  {
+    id: '16-how-to-reset-state',
+    title: 'How to reset state',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/how-to-reset-state.md',
+    Component: HowToResetState,
   },
 ];
