@@ -83,10 +83,12 @@ pnpm typecheck  # 타입 검사
 
 ### Reference — Middlewares
 
-- [ ] `persist` — 진행 중 (19). 본체(partialize · version/migrate · onRehydrateStorage ·
+- [x] `persist` — 19. 본체(partialize · version/migrate · onRehydrateStorage ·
       커스텀 storage)는 10 과 labs/practical-persist 에서 이미 다뤘고, 19 는 hydration 만 본다:
       느린 storage 로 복원 게이트의 필요성을 눈에 보이게, 로그아웃 = 리셋 + clearStorage(),
-      skipHydration + rehydrate() 는 SSR 용.
+      skipHydration + rehydrate() 는 SSR 용. 로그인 상태를 persist 로 두는 것 자체는 권장이
+      아니며(서버가 판정, 클라이언트는 /me 로 알기만), 게이트를 실제로 짜는 곳은 RN · SSR ·
+      첫 화면 분기용 저장값이다. 이걸로 ①등급(실수 방지용) 주제는 전부 끝.
 - [x] `devtools` — 18. 확장이 없는 환경이라 window.__REDUX_DEVTOOLS_EXTENSION__ 을
       직접 구현해 zustand 가 보내는 init/send 를 화면에 그린다.
       실무에서 쓸 것은 devtools(...) 로 감싸기 + set 세 번째 인자로 액션 이름 주기 둘뿐.

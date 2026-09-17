@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import Notes from '../ui/Notes.tsx';
@@ -65,14 +65,14 @@ const useSessionStore = create<SessionStore>()(
 
       login: (name) => set({ user: name }),
 
-      // TODO ② — 지금은 메모리만 되돌린다. 게이트 없는 패널에서 "복원 중"에 로그아웃해 보라:
-      //   복원이 끝나는 순간 옛 사용자가 되살아난다. 복원 요청은 로그아웃 전에 이미 나갔고,
-      //   늦게 돌아온 결과가 set(…, true) 로 덮어쓰기 때문이다.
-      //   clearStorage() 를 함께 불러라 — 저장된 키를 지우고, 진행 중인 복원도 버린다
-      //   (middleware.mjs 의 hydrationVersion 카운터가 올라가서 늦게 온 결과는 무시된다):
-      //     useSessionStore.persist.clearStorage();
-      //   16 의 리셋 패턴(getInitialState + replace)에 이 한 줄이 더 붙는 것이 로그아웃이다.
-      logout: () => set(store.getInitialState(), true),
+      // 로그아웃 = 16 의 리셋 패턴(getInitialState + replace) + clearStorage().
+      // 리셋만 하면 복원 도중에 로그아웃했을 때 늦게 돌아온 복원 결과가 옛 사용자를 되살린다
+      // (복원 요청은 로그아웃 전에 이미 나갔다). clearStorage() 는 저장된 키를 지우고,
+      // hydrationVersion 카운터를 올려 진행 중인 복원 결과를 버리게 한다.
+      logout: () => {
+        set(store.getInitialState(), true);
+        store.persist.clearStorage();
+      },
     }),
     {
       name: SESSION_KEY,
@@ -86,21 +86,23 @@ const useSessionStore = create<SessionStore>()(
  * hasHydrated() 는 반응형이 아니라서(그냥 boolean 반환) 구독으로 갱신해야 한다.
  */
 function useHydration() {
-  // TODO ① — 지금은 무조건 true 라서 "게이트 있음" 패널도 게이트 없는 것과 똑같이 깜빡인다.
-  //   공식문서 FAQ 의 useHydration 패턴으로 바꿔라:
-  //     const [hydrated, setHydrated] = useState(false);
-  //     useEffect(() => {
-  //       const unsubHydrate = useSessionStore.persist.onHydrate(() => setHydrated(false));
-  //       const unsubFinish = useSessionStore.persist.onFinishHydration(() => setHydrated(true));
-  //       setHydrated(useSessionStore.persist.hasHydrated());   // 구독 전에 이미 끝났을 수도 있다
-  //       return () => {
-  //         unsubHydrate();
-  //         unsubFinish();
-  //       };
-  //     }, []);
-  //     return hydrated;
-  //   onHydrate 는 rehydrate() 로 다시 복원할 때 false 로 되돌리기 위한 것이다.
-  return true;
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // 예약 등록 — 지금 불리는 게 아니라 persist 가 복원을 시작·종료할 때 불러 준다.
+    // onHydrate 는 rehydrate() 로 다시 복원할 때 false 로 되돌리기 위한 것이다.
+    const unsubHydrate = useSessionStore.persist.onHydrate(() => setHydrated(false));
+    const unsubFinish = useSessionStore.persist.onFinishHydration(() => setHydrated(true));
+    // 보정 — 복원은 스토어 생성 시 시작되므로 이 컴포넌트가 마운트되기 전에 끝났을 수 있다.
+    setHydrated(useSessionStore.persist.hasHydrated());
+    // 언마운트(다른 예제 클릭) 때 예약 해제. StrictMode 는 마운트 직후에도 한 번 돌려 본다.
+    return () => {
+      unsubHydrate();
+      unsubFinish();
+    };
+  }, []);
+
+  return hydrated;
 }
 
 /**
@@ -369,6 +371,142 @@ export default function PersistHydration() {
             중첩 객체를 부분만 저장하면 저장 안 된 하위 필드가 사라진다. 그런 구조면{' '}
             <code>merge</code> 옵션에 깊은 병합을 준다 — 보통은 상태를 납작하게 두는 편이 낫다.
           </>,
+          <>
+            <b>로그인 상태를 persist 로 관리하는 것 자체는 권장이 아니다.</b> 여기서 로그인을 소재로
+            쓴 것은 &quot;복원 전의 잘못된 판단&quot;이 가장 직관적으로 드러나서다. 실무의 최종
+            판정은 서버가 하고(cookie·토큰 검사), 클라이언트는 화면을 그리려고 상태를 <b>알고만</b>{' '}
+            있다. 흔한 방식은 httpOnly cookie + 앱 시작 시 <code>/me</code> 호출 → 메모리에만 두기.
+            그래도 응답이 오기 전 &quot;모름&quot; 구간은 똑같이 생기고, React Query 의{' '}
+            <code>isPending</code> 이 이 예제의 <code>hydrated</code> 자리다.
+          </>,
+          <>
+            <b>이 게이트를 실제로 짜게 되는 곳</b>은 React Native(AsyncStorage 가 비동기), Next.js
+            SSR, 그리고 테마·온보딩 완료 여부처럼 첫 화면 분기에 쓰이는 저장값이다. Vite SPA 에서
+            localStorage 만 쓰는 동안은 짤 일이 없다. 원칙 하나만 가져간다 —{' '}
+            <b>&quot;아직 모름&quot;을 &quot;없음&quot;으로 착각하지 않는다.</b>
+          </>,
+        ]}
+        questions={[
+          {
+            q: 'useHydration 의 사전적 의미와 개발적 의미는?',
+            a: (
+              <>
+                hydrate 는 &quot;물을 채우다&quot; — 말라 있던 것에 내용물을 넣어 되살린다.
+                개발에서는 &quot;죽은 형태(문자열·HTML)를 살아 있는 객체로 되돌린다&quot;. React 의
+                hydration 은 서버 HTML 에 이벤트·상태를 붙이는 것(14), persist 의 hydration 은
+                storage 의 문자열을 스토어 상태로 되돌리는 것(19). 이름만 같고 대상이 다르다.{' '}
+                <code>useHydration</code> 은 &quot;persist 복원이 끝났는가&quot;를 React 가 지켜볼
+                수 있게 하는 훅이다.
+              </>
+            ),
+          },
+          {
+            q: 'onHydrate · onFinishHydration · hasHydrated 는 persist 의 기본 객체인가?',
+            a: (
+              <>
+                persist 미들웨어가 스토어에 <code>persist</code> 라는 속성 하나를 덧붙인다(소스의{' '}
+                <code>
+                  api.persist = {'{'}…{'}'}
+                </code>
+                ). 그 안의 일곱 개는 전부 함수다. <code>hasHydrated()</code> 는 내부 변수를 지금
+                읽어 줄 뿐 알려 주지 않고, <code>onFinishHydration(fn)</code> 은 내부{' '}
+                <code>Set</code> 에 fn 을 넣어 두는 &quot;끝나면 불러 달라&quot;는 예약이다.{' '}
+                <code>store.subscribe</code> 와 같은 모양이고, 돌려주는 함수를 부르면 예약이 빠진다.
+              </>
+            ),
+          },
+          {
+            q: '게이트는 펜딩 표시를 보여 주려는 건가?',
+            a: (
+              <>
+                펜딩 표시는 결과일 뿐이다. 목적은 복원이 끝나기 전에 화면이 <b>잘못된 판단</b>을
+                내리는 것을 막는 것 — <code>null</code> 이 &quot;비로그인&quot;인지 &quot;아직 안
+                읽었음&quot;인지 구분이 안 되는 것이 문제의 뿌리다. 게이트가 없으면 로그인 페이지로
+                리다이렉트하거나, 비로그인용 API 를 부르거나, 복원 결과와 충돌하는 액션을 누르게
+                된다.
+              </>
+            ),
+          },
+          {
+            q: 'useEffect 안의 onHydrate / onFinishHydration 은 마운트 때 실행되는 건가?',
+            a: (
+              <>
+                마운트 때 실행되는 것은 <b>등록</b>이다. 넘긴 콜백은 그 자리에서 불리지 않고, 나중에
+                persist 가 복원을 시작·종료할 때 persist 쪽에서 불러 준다. 전화번호를 남기는 것이지
+                전화를 거는 게 아니다. 그 다음 줄의 <code>setHydrated(hasHydrated())</code> 는
+                &quot;이미 끝났으면?&quot;에 대한 보정 — 복원은 스토어 생성 시 시작되므로 마운트
+                전에 끝나 있을 수 있고, 그러면 예약은 영영 안 불린다.
+              </>
+            ),
+          },
+          {
+            q: '정리 함수(return () => …)는 언제 도나? 가만히 기다리면 안 도는 것 아닌가?',
+            a: (
+              <>
+                맞다. effect 는 정리 함수를 <b>만들어서 React 에 맡겨만</b> 두고, React 가 언마운트
+                순간에 대신 부른다. 이 프로젝트에서는 왼쪽 목록에서 다른 예제를 클릭할 때가 그
+                순간이다(<code>App</code> 이 <code>current.Component</code> 하나만 그리므로). 그
+                밖에 조건부 렌더링으로 사라질 때, 라우터 페이지 이동, 목록에서 항목 삭제. 예외는
+                개발 모드 StrictMode — 마운트 직후 &quot;정리 → 재실행&quot;을 일부러 한 번 끼워
+                넣어 정리가 제대로 짜였는지 검사한다.
+              </>
+            ),
+          },
+          {
+            q: '복원은 어디서 진행되나? 내부에서?',
+            a: (
+              <>
+                전부 persist 내부의 <code>hydrate()</code> 함수다. storage 에서 읽고 →{' '}
+                <code>merge</code> 로 현재 상태와 합치고 → <code>set(merged, true)</code> 로 넣고 →
+                내부 변수 <code>hasHydrated = true</code> → 예약된 콜백들을 부른다. 스토어 생성 시
+                마지막 줄에서 persist 가 스스로 한 번 부르고(<code>skipHydration</code> 이 아니면),{' '}
+                <code>rehydrate()</code> 는 같은 함수를 다시 부르는 것이다. 우리가 직접 건드리는
+                순간은 이 둘뿐이다.
+              </>
+            ),
+          },
+          {
+            q: 'storage: createJSONStorage(() => slowStorage) 는 slowStorage 객체를 저장하는 건가?',
+            a: (
+              <>
+                반대다. <code>storage</code> 옵션은 &quot;무엇을&quot;이 아니라{' '}
+                <b>&quot;어디에&quot;</b> 저장할지다. 저장되는 것은 상태(
+                <code>
+                  {'{'}&quot;state&quot;:{'{'}&quot;user&quot;:…{'}'}
+                  ,&quot;version&quot;:0{'}'}
+                </code>
+                )이고, 경로는 persist → createJSONStorage(객체 ↔ 문자열 변환) → slowStorage(1.2초
+                지연, 학습용) → <code>window.localStorage</code> 세 겹이다. 함수로 감싸는 이유는 SSR
+                에서 <code>window</code> 가 없을 때 모듈 로드가 터지지 않게 늦게 부르려는 것.{' '}
+                <code>SESSION_KEY</code> 의 session 은 로그인 세션이지 <code>sessionStorage</code>{' '}
+                가 아니다.
+              </>
+            ),
+          },
+          {
+            q: 'useStoredSession 이 스토어를 구독해서 localStorage 에 저장하는 건가?',
+            a: (
+              <>
+                저장하지 않는다. 화면의 &quot;저장된 값&quot; 한 줄을 그리려고 <b>읽기만</b> 하는
+                거울이다. 저장은 persist 가 <code>set</code> 마다 한다.{' '}
+                <code>useSyncExternalStore</code> 의 두 번째 인자가 실제로 읽는 함수, 첫 번째 인자는
+                &quot;다시 읽어라&quot;를 언제 알릴지 — 이 탭의 스토어 변경(구독)과 다른 탭의 변경(
+                <code>storage</code> 이벤트) 두 경우다. <code>queueMicrotask</code> 는 persist 가
+                구독자에게 알린 <b>뒤에</b> <code>setItem</code> 을 부르기 때문에 한 박자 미루는 것.
+              </>
+            ),
+          },
+          {
+            q: '실무에서는 로그인 여부를 라우터·API 에서 확인하니 클라이언트에서 이럴 필요가 없지 않나?',
+            a: (
+              <>
+                최종 판정은 서버가 한다는 점은 맞다. 그래도 클라이언트는 화면을 그리려고 상태를
+                알고는 있어야 하고(헤더, 라우터 가드, 보호 API 호출 여부), 그 상태가 비동기로 오는
+                동안의 &quot;모름&quot; 구간은 어디서 가져오든 똑같이 생긴다. 정리 항목의 마지막 두
+                개 참고.
+              </>
+            ),
+          },
         ]}
       />
     </>
