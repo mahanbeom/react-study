@@ -17,6 +17,7 @@ import InitializeStateWithProps from './15-initialize-state-with-props.tsx';
 import HowToResetState from './16-how-to-reset-state.tsx';
 import Testing from './17-testing/index.tsx';
 import Devtools from './18-devtools.tsx';
+import PersistHydration from './19-persist-hydration.tsx';
 
 export type Example = {
   id: string;
@@ -135,5 +136,11 @@ export const examples: Example[] = [
     title: 'devtools',
     docs: 'https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/devtools.md',
     Component: Devtools,
+  },
+  {
+    id: '19-persist-hydration',
+    title: 'persist — hydration',
+    docs: 'https://github.com/pmndrs/zustand/blob/main/docs/reference/integrations/persisting-store-data.md#hydration-and-asynchronous-storages',
+    Component: PersistHydration,
   },
 ];

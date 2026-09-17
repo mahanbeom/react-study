@@ -83,7 +83,10 @@ pnpm typecheck  # 타입 검사
 
 ### Reference — Middlewares
 
-- [ ] `persist`
+- [ ] `persist` — 진행 중 (19). 본체(partialize · version/migrate · onRehydrateStorage ·
+      커스텀 storage)는 10 과 labs/practical-persist 에서 이미 다뤘고, 19 는 hydration 만 본다:
+      느린 storage 로 복원 게이트의 필요성을 눈에 보이게, 로그아웃 = 리셋 + clearStorage(),
+      skipHydration + rehydrate() 는 SSR 용.
 - [x] `devtools` — 18. 확장이 없는 환경이라 window.__REDUX_DEVTOOLS_EXTENSION__ 을
       직접 구현해 zustand 가 보내는 init/send 를 화면에 그린다.
       실무에서 쓸 것은 devtools(...) 로 감싸기 + set 세 번째 인자로 액션 이름 주기 둘뿐.
